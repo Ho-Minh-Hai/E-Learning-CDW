@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 
 const Dashboard = ({ children }) => {
-  const [isSidebarOpen, setSidebarOpen] = useState(true);
+  const [isSidebarOpen] = useState(true);
   const location = useLocation();
 
   const menuItems = [
@@ -168,7 +168,7 @@ const Dashboard = ({ children }) => {
   );
 };
 
-const StatCard = ({ title, value, change, color }) => (
+const StatCard = ({ title, value, change }) => (
   <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
     <p className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">{title}</p>
     <div className="flex items-end justify-between">
