@@ -1,6 +1,6 @@
 import React from 'react';
 import Dashboard from '../dashboard/Dashboard';
-import { Plus, PlayCircle, FileText, Users, Clock, ArrowUpRight } from 'lucide-react';
+import { Plus, PlayCircle, FileText, Users, Clock, ArrowUpRight, BookOpen } from 'lucide-react';
 
 const CourseManagement = () => {
   return (

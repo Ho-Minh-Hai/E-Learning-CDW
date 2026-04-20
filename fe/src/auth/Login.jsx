@@ -36,7 +36,7 @@ const Login = () => {
         <div className="text-center">
           <Link to="/" className="inline-flex items-center gap-2 mb-8">
             <div className="bg-indigo-600 p-2 rounded-lg">
-              <BookOpen className="text-white h-6 h-6" />
+              <BookOpen className="text-white w-6 h-6" />
             </div>
             <span className="text-2xl font-bold text-slate-900">EduFlow</span>
           </Link>
@@ -63,7 +63,7 @@ const Login = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@example.com" 
                   required
-                  className="w-full pl-12 pr-4 py-3 bg-white/50 border border-slate-200 rounded-2x focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300"
+                  className="w-full pl-12 pr-4 py-3 bg-white/50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300"
                 />
               </div>
             </div>
