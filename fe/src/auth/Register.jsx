@@ -29,8 +29,18 @@ const Register = () => {
       if (data?.user?.identities?.length === 0) {
         setError('This email is already registered.');
       } else {
-        alert('Registration successful! Please check your email for confirmation (if enabled) or log in now.');
-        navigate('/login');
+        // Check if email confirmation is required
+        if (data?.user && !data?.session) {
+          alert('Registration successful! Please check your email for confirmation.');
+          navigate('/login');
+        } else {
+          // Auto login successful, redirect based on role
+          if (role === 'student') {
+            navigate('/student/dashboard');
+          } else if (role === 'instructor') {
+            navigate('/dashboard');
+          }
+        }
       }
     } catch (err) {
       setError(err.message || 'Failed to create account.');
@@ -43,7 +53,7 @@ const Register = () => {
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
       <AuthBackground />
       
-      <div className="max-w-md w-full space-y-8 bg-white/80 backdrop-blur-xl p-10 rounded-[2.5rem] shadow-2xl shadow-indigo-100/50 border border-white/50 animate-in fade-in zoom-in duration-500">
+      <div className="max-w-md w-full space-y-8 bg-white/90 backdrop-blur-xl p-10 rounded-[2.5rem] shadow-2xl shadow-slate-200/50 border border-slate-100 animate-in fade-in zoom-in duration-500">
         <div className="text-center">
           <Link to="/" className="inline-flex items-center gap-2 mb-8">
             <div className="bg-indigo-600 p-2 rounded-lg">
@@ -51,8 +61,10 @@ const Register = () => {
             </div>
             <span className="text-2xl font-bold text-slate-900">EduFlow</span>
           </Link>
-          <h2 className="text-3xl font-extrabold text-slate-900 font-serif">Create Account</h2>
-          <p className="mt-2 text-slate-500">Join our community of lifelong learners</p>
+          <h2 className="text-4xl font-extrabold text-slate-900 tracking-tight">
+            Create Account for <span className="text-indigo-600">{role === 'student' ? 'Student' : 'Instructor'}</span>
+          </h2>
+          <p className="mt-3 text-slate-500 text-base">Join our community of lifelong learners</p>
         </div>
 
         {error && (
@@ -62,15 +74,15 @@ const Register = () => {
           </div>
         )}
 
-        <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
-          <div className="grid grid-cols-2 gap-4">
+        <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
+          <div className="grid grid-cols-2 gap-3">
             <button 
               type="button" 
               onClick={() => setRole('student')}
-              className={`py-3 px-4 rounded-2xl text-sm font-bold transition-all duration-300 ${
+              className={`py-3.5 px-4 rounded-2xl text-base font-bold transition-all duration-300 ${
                 role === 'student' 
-                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100 scale-[1.05]' 
-                : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:scale-[1.02]'
+                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' 
+                : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
               }`}
             >
               Student
@@ -78,19 +90,19 @@ const Register = () => {
             <button 
               type="button" 
               onClick={() => setRole('instructor')}
-              className={`py-3 px-4 rounded-2xl text-sm font-bold transition-all duration-300 ${
+              className={`py-3.5 px-4 rounded-2xl text-base font-bold transition-all duration-300 ${
                 role === 'instructor' 
-                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100 scale-[1.05]' 
-                : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:scale-[1.02]'
+                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' 
+                : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
               }`}
             >
               Instructor
             </button>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-5">
             <div>
-              <label className="text-sm font-semibold text-slate-700 block mb-2">Full Name</label>
+              <label className="text-sm font-bold text-slate-700 block mb-2">Full Name</label>
               <div className="relative">
                 <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                 <input 
@@ -99,12 +111,12 @@ const Register = () => {
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="John Doe" 
                   required
-                  className="w-full pl-12 pr-4 py-3 bg-white/50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300"
+                  className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all duration-300 placeholder:text-slate-400"
                 />
               </div>
             </div>
             <div>
-              <label className="text-sm font-semibold text-slate-700 block mb-2">Email Address</label>
+              <label className="text-sm font-bold text-slate-700 block mb-2">Email Address</label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                 <input 
@@ -113,12 +125,12 @@ const Register = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@example.com" 
                   required
-                  className="w-full pl-12 pr-4 py-3 bg-white/50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300"
+                  className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all duration-300 placeholder:text-slate-400"
                 />
               </div>
             </div>
             <div>
-              <label className="text-sm font-semibold text-slate-700 block mb-2">Password</label>
+              <label className="text-sm font-bold text-slate-700 block mb-2">Password</label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                 <input 
@@ -127,7 +139,7 @@ const Register = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••" 
                   required
-                  className="w-full pl-12 pr-4 py-3 bg-white/50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300"
+                  className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all duration-300 placeholder:text-slate-400"
                 />
               </div>
             </div>
@@ -136,7 +148,7 @@ const Register = () => {
           <button 
             type="submit" 
             disabled={loading}
-            className="w-full mt-6 flex items-center justify-center gap-2 py-4 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 shadow-lg shadow-indigo-100 group disabled:opacity-70 disabled:cursor-not-allowed"
+            className="w-full mt-6 flex items-center justify-center gap-2 py-4 bg-indigo-600 text-white rounded-2xl font-bold text-base hover:bg-indigo-700 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 shadow-lg shadow-indigo-200 group disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {loading ? (
               <Loader2 className="w-5 h-5 animate-spin" />
@@ -149,9 +161,9 @@ const Register = () => {
           </button>
         </form>
 
-        <p className="text-center text-sm text-slate-500">
+        <p className="text-center text-sm text-slate-500 mt-6">
           Already have an account? {' '}
-          <Link to="/login" className="font-bold text-indigo-600 hover:text-indigo-500 decoration-2 underline-offset-4 hover:underline">Sign in</Link>
+          <Link to="/login" className="font-bold text-indigo-600 hover:text-indigo-500 transition-colors">Sign in</Link>
         </p>
       </div>
     </div>
