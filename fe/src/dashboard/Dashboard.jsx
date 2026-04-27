@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 import { 
   LayoutDashboard, 
   BookOpen, 
@@ -17,14 +18,38 @@ import {
 const Dashboard = ({ children }) => {
   const [isSidebarOpen] = useState(true);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
+  
+  const userRole = user?.user_metadata?.role;
 
-  const menuItems = [
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      navigate('/login');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
+  // Menu items for instructor/admin
+  const instructorMenuItems = [
     { icon: <LayoutDashboard size={20} />, label: 'Dashboard', path: '/dashboard' },
     { icon: <BookOpen size={20} />, label: 'My Courses', path: '/courses' },
     { icon: <MessageSquare size={20} />, label: 'Messages', path: '/chat' },
     { icon: <BarChart3 size={20} />, label: 'Performance', path: '/evaluation' },
     { icon: <UserCircle size={20} />, label: 'Admin Panel', path: '/admin' },
   ];
+
+  // Menu items for students
+  const studentMenuItems = [
+    { icon: <LayoutDashboard size={20} />, label: 'Dashboard', path: '/student/dashboard' },
+    { icon: <BookOpen size={20} />, label: 'My Courses', path: '/student/courses' },
+    { icon: <MessageSquare size={20} />, label: 'Messages', path: '/chat' },
+    { icon: <BarChart3 size={20} />, label: 'Progress', path: '/student/progress' },
+  ];
+
+  const menuItems = userRole === 'student' ? studentMenuItems : instructorMenuItems;
 
   return (
     <div className="flex h-screen bg-slate-50 overflow-hidden">
@@ -55,7 +80,10 @@ const Dashboard = ({ children }) => {
         </nav>
 
         <div className="p-4 border-t border-slate-100">
-          <button className="flex items-center gap-4 px-4 py-3 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition w-full font-medium">
+          <button 
+            onClick={handleSignOut}
+            className="flex items-center gap-4 px-4 py-3 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition w-full font-medium"
+          >
             <LogOut size={20} />
             {isSidebarOpen && <span>Sign Out</span>}
           </button>
@@ -84,8 +112,12 @@ const Dashboard = ({ children }) => {
             <div className="w-px h-8 bg-slate-200 mx-2" />
             <div className="flex items-center gap-3">
               <div className="text-right hidden sm:block">
-                <p className="text-sm font-bold text-slate-900 uppercase">John Maverick</p>
-                <p className="text-xs text-slate-500 font-medium tracking-tight">Lead Instructor</p>
+                <p className="text-sm font-bold text-slate-900 uppercase">
+                  {user?.user_metadata?.full_name || 'User'}
+                </p>
+                <p className="text-xs text-slate-500 font-medium tracking-tight">
+                  {userRole === 'student' ? 'Student' : userRole === 'instructor' ? 'Instructor' : 'Admin'}
+                </p>
               </div>
               <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 border-2 border-white shadow-md ring-1 ring-slate-100" />
             </div>
