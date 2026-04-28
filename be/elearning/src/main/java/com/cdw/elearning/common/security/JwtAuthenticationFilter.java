@@ -1,4 +1,4 @@
-package com.cdw.elearning.security;
+package com.cdw.elearning.common.security;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

@@ -1,5 +1,6 @@
-package com.cdw.elearning.entity;
+package com.cdw.elearning.modules.role.entity;
 
+import com.cdw.elearning.modules.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -1,7 +1,7 @@
-package com.cdw.elearning.mapper;
+package com.cdw.elearning.modules.role.mapper;
 
-import com.cdw.elearning.dto.response.RoleResponse;
-import com.cdw.elearning.entity.Role;
+import com.cdw.elearning.modules.role.dto.response.RoleResponse;
+import com.cdw.elearning.modules.role.entity.Role;
 import org.mapstruct.Mapper;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 

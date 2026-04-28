@@ -1,8 +1,8 @@
-package com.cdw.elearning.service;
+package com.cdw.elearning.modules.auth.service;
 
-import com.cdw.elearning.dto.request.LoginRequest;
-import com.cdw.elearning.dto.request.UserCreateRequest;
-import com.cdw.elearning.dto.response.LoginResponse;
+import com.cdw.elearning.modules.auth.dto.request.LoginRequest;
+import com.cdw.elearning.modules.user.dto.request.UserCreateRequest;
+import com.cdw.elearning.modules.auth.dto.response.LoginResponse;
 
 public interface AuthService {
 

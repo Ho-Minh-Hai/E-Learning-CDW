@@ -1,6 +1,6 @@
-package com.cdw.elearning.config;
+package com.cdw.elearning.common.config;
 
-import com.cdw.elearning.security.JwtAuthenticationFilter;
+import com.cdw.elearning.common.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -1,9 +1,10 @@
-package com.cdw.elearning.mapper;
+package com.cdw.elearning.modules.user.mapper;
 
-import com.cdw.elearning.dto.request.UserCreateRequest;
-import com.cdw.elearning.dto.request.UserUpdateRequest;
-import com.cdw.elearning.dto.response.UserResponse;
-import com.cdw.elearning.entity.User;
+import com.cdw.elearning.modules.role.entity.Role;
+import com.cdw.elearning.modules.user.dto.request.UserCreateRequest;
+import com.cdw.elearning.modules.user.dto.request.UserUpdateRequest;
+import com.cdw.elearning.modules.user.dto.response.UserResponse;
+import com.cdw.elearning.modules.user.entity.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
@@ -23,12 +24,12 @@ public interface UserMapper {
 
     void updateEntityFromRequest(UserUpdateRequest request, @MappingTarget User user);
 
-    default Set<String> mapRolesToStrings(Set<com.cdw.elearning.entity.Role> roles) {
+    default Set<String> mapRolesToStrings(Set<Role> roles) {
         if (roles == null) {
             return null;
         }
         return roles.stream()
-                .map(com.cdw.elearning.entity.Role::getName)
+                .map(Role::getName)
                 .collect(Collectors.toSet());
     }
 }

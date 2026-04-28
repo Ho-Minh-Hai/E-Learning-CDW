@@ -1,4 +1,4 @@
-package com.cdw.elearning.exception;
+package com.cdw.elearning.common.exception;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;

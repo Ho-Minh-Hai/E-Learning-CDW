@@ -1,11 +1,11 @@
-package com.cdw.elearning.controller;
+package com.cdw.elearning.modules.user.controller;
 
-import com.cdw.elearning.dto.request.RoleAssignRequest;
-import com.cdw.elearning.dto.request.UserCreateRequest;
-import com.cdw.elearning.dto.request.UserUpdateRequest;
-import com.cdw.elearning.dto.response.ApiResponse;
-import com.cdw.elearning.dto.response.UserResponse;
-import com.cdw.elearning.service.UserService;
+import com.cdw.elearning.modules.role.dto.request.RoleAssignRequest;
+import com.cdw.elearning.modules.user.dto.request.UserCreateRequest;
+import com.cdw.elearning.modules.user.dto.request.UserUpdateRequest;
+import com.cdw.elearning.common.dto.response.ApiResponse;
+import com.cdw.elearning.modules.user.dto.response.UserResponse;
+import com.cdw.elearning.modules.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

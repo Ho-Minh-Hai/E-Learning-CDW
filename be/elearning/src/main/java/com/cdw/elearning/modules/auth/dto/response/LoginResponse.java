@@ -1,4 +1,4 @@
-package com.cdw.elearning.dto.response;
+package com.cdw.elearning.modules.auth.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

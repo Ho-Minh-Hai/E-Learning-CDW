@@ -1,4 +1,4 @@
-package com.cdw.elearning.security;
+package com.cdw.elearning.common.security;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

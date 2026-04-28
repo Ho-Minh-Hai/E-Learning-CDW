@@ -1,6 +1,6 @@
-package com.cdw.elearning.service;
+package com.cdw.elearning.modules.role.service;
 
-import com.cdw.elearning.dto.response.RoleResponse;
+import com.cdw.elearning.modules.role.dto.response.RoleResponse;
 
 import java.util.List;
 

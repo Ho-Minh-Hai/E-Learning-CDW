@@ -1,10 +1,10 @@
-package com.cdw.elearning.controller;
+package com.cdw.elearning.modules.auth.controller;
 
-import com.cdw.elearning.dto.request.LoginRequest;
-import com.cdw.elearning.dto.request.UserCreateRequest;
-import com.cdw.elearning.dto.response.ApiResponse;
-import com.cdw.elearning.dto.response.LoginResponse;
-import com.cdw.elearning.service.AuthService;
+import com.cdw.elearning.modules.auth.dto.request.LoginRequest;
+import com.cdw.elearning.modules.user.dto.request.UserCreateRequest;
+import com.cdw.elearning.common.dto.response.ApiResponse;
+import com.cdw.elearning.modules.auth.dto.response.LoginResponse;
+import com.cdw.elearning.modules.auth.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

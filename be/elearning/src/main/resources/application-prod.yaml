@@ -1,0 +1,65 @@
+# Production Profile Configuration
+
+spring:
+  # Database Configuration for Production
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/elearning_prod}
+    username: ${DATABASE_USERNAME:postgres}
+    password: ${DATABASE_PASSWORD:postgres}
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 10
+  
+  # JPA Configuration for Production
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+  
+  # DevTools disabled in production
+  devtools:
+    restart:
+      enabled: false
+    livereload:
+      enabled: false
+
+# Server Configuration for Production
+server:
+  port: ${SERVER_PORT:8080}
+  error:
+    include-message: never
+    include-binding-errors: never
+    include-stacktrace: never
+    include-exception: false
+
+# JWT Configuration for Production
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:3600000} # 1 hour
+  refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000} # 7 days
+
+# Logging Configuration for Production
+logging:
+  level:
+    root: WARN
+    com.cdw.elearning: INFO
+    org.springframework.web: WARN
+    org.springframework.security: WARN
+    org.hibernate.SQL: WARN
+  file:
+    name: /var/log/elearning/application.log
+    max-size: 50MB
+    max-history: 90
+
+# Actuator Configuration for Production
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized

@@ -1,12 +1,12 @@
-package com.cdw.elearning.service.impl;
+package com.cdw.elearning.modules.role.service.impl;
 
-import com.cdw.elearning.dto.response.RoleResponse;
-import com.cdw.elearning.entity.Role;
-import com.cdw.elearning.exception.AppException;
-import com.cdw.elearning.exception.ErrorCode;
-import com.cdw.elearning.mapper.RoleMapper;
-import com.cdw.elearning.repository.RoleRepository;
-import com.cdw.elearning.service.RoleService;
+import com.cdw.elearning.modules.role.dto.response.RoleResponse;
+import com.cdw.elearning.modules.role.entity.Role;
+import com.cdw.elearning.common.exception.AppException;
+import com.cdw.elearning.common.exception.ErrorCode;
+import com.cdw.elearning.modules.role.mapper.RoleMapper;
+import com.cdw.elearning.modules.role.repository.RoleRepository;
+import com.cdw.elearning.modules.role.service.RoleService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

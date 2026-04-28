@@ -1,6 +1,6 @@
-package com.cdw.elearning.exception;
+package com.cdw.elearning.common.exception;
 
-import com.cdw.elearning.dto.response.ApiResponse;
+import com.cdw.elearning.common.dto.response.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

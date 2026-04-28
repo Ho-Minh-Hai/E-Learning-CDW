@@ -1,6 +1,6 @@
-package com.cdw.elearning.repository;
+package com.cdw.elearning.modules.role.repository;
 
-import com.cdw.elearning.entity.Role;
+import com.cdw.elearning.modules.role.entity.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -1,6 +1,6 @@
-package com.cdw.elearning.repository;
+package com.cdw.elearning.modules.user.repository;
 
-import com.cdw.elearning.entity.User;
+import com.cdw.elearning.modules.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;

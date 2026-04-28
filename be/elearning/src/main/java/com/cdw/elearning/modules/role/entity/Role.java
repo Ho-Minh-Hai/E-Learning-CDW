@@ -1,4 +1,4 @@
-package com.cdw.elearning.entity;
+package com.cdw.elearning.modules.role.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
