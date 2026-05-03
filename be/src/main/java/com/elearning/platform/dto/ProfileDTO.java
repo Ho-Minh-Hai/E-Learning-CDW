@@ -15,5 +15,6 @@ public class ProfileDTO {
     private UUID id;
     private String fullName;
     private String avatarUrl;
+    private String email;
     private String role;
 }

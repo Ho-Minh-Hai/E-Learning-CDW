@@ -16,14 +16,24 @@ public class ProfileService {
 
     private final ProfileRepository profileRepository;
 
+    private String determineRoleFromEmail(String email) {
+        if (email != null && email.toLowerCase().endsWith("@st.hcmuaf.edu.vn")) {
+            return "teacher";
+        }
+        return "user";
+    }
+
     @Transactional
     public Profile syncProfile(ProfileDTO profileDto) {
+        String role = determineRoleFromEmail(profileDto.getEmail());
+
         return profileRepository.findById(profileDto.getId())
                 .map(existing -> {
                     // Update existing profile
                     if (profileDto.getFullName() != null) existing.setFullName(profileDto.getFullName());
                     if (profileDto.getAvatarUrl() != null) existing.setAvatarUrl(profileDto.getAvatarUrl());
-                    if (profileDto.getRole() != null) existing.setRole(profileDto.getRole());
+                    // Only update role if it was 'user' (don't downgrade admins/teachers manually set)
+                    if (!"admin".equals(existing.getRole())) existing.setRole(role);
                     return profileRepository.save(existing);
                 })
                 .orElseGet(() -> {
@@ -32,7 +42,7 @@ public class ProfileService {
                             .id(profileDto.getId())
                             .fullName(profileDto.getFullName())
                             .avatarUrl(profileDto.getAvatarUrl())
-                            .role(profileDto.getRole() != null ? profileDto.getRole() : "user")
+                            .role(role)
                             .build();
                     return profileRepository.save(newProfile);
                 });
