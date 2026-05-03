@@ -1,4 +1,4 @@
-import React, { createContext, useEffect, useState } from 'react';
+import React, { createContext, useEffect, useState, useRef } from 'react';
 import { supabase } from '../supabaseClient';
 
 export const AuthContext = createContext({});
@@ -6,12 +6,46 @@ export const AuthContext = createContext({});
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const syncedRef = useRef(new Set()); // Track synced user IDs
 
   useEffect(() => {
+    const syncProfile = async (sessionUser) => {
+      if (!sessionUser) return;
+      // Only sync once per user session
+      if (syncedRef.current.has(sessionUser.id)) return;
+      syncedRef.current.add(sessionUser.id);
+      
+      
+      // Map Supabase roles to database-compatible roles
+      const rawRole = sessionUser.user_metadata?.role || 'user';
+      let dbRole = 'user';
+      if (rawRole === 'instructor') dbRole = 'teacher';
+      else if (rawRole === 'admin') dbRole = 'admin';
+      else dbRole = 'user';
+
+      try {
+        await fetch('http://localhost:8080/api/profiles/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: sessionUser.id,
+            fullName: sessionUser.user_metadata?.full_name,
+            avatarUrl: sessionUser.user_metadata?.avatar_url,
+            role: dbRole
+          })
+        });
+      } catch (err) {
+        console.error('Failed to sync profile:', err);
+      }
+    };
+
     // Check active sessions and sets the user
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user ?? null);
+      if (session?.user) {
+        setUser(session.user);
+        syncProfile(session.user);
+      }
       setLoading(false);
     };
 
@@ -20,6 +54,9 @@ export const AuthProvider = ({ children }) => {
     // Listen for changes on auth state (sign in, sign out, etc.)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      if (session?.user) {
+        syncProfile(session.user);
+      }
       setLoading(false);
     });
 
