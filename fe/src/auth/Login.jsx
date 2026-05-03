@@ -18,9 +18,19 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const { error } = await signIn(email, password);
+      const { data, error } = await signIn(email, password);
       if (error) throw error;
-      navigate('/dashboard');
+      
+      // Redirect based on user role
+      const userRole = data?.user?.user_metadata?.role;
+      if (userRole === 'student') {
+        navigate('/student/dashboard');
+      } else if (userRole === 'instructor' || userRole === 'admin') {
+        navigate('/dashboard');
+      } else {
+        // Default fallback
+        navigate('/dashboard');
+      }
     } catch (err) {
       setError(err.message || 'Failed to sign in. Please check your credentials.');
     } finally {
@@ -32,7 +42,7 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
       <AuthBackground />
       
-      <div className="max-w-md w-full space-y-8 bg-white/80 backdrop-blur-xl p-10 rounded-[2.5rem] shadow-2xl shadow-indigo-100/50 border border-white/50 animate-in fade-in zoom-in duration-500">
+      <div className="max-w-md w-full space-y-8 bg-white/90 backdrop-blur-xl p-10 rounded-[2.5rem] shadow-2xl shadow-slate-200/50 border border-slate-100 animate-in fade-in zoom-in duration-500">
         <div className="text-center">
           <Link to="/" className="inline-flex items-center gap-2 mb-8">
             <div className="bg-indigo-600 p-2 rounded-lg">
@@ -40,8 +50,8 @@ const Login = () => {
             </div>
             <span className="text-2xl font-bold text-slate-900">EduFlow</span>
           </Link>
-          <h2 className="text-3xl font-extrabold text-slate-900 font-serif">Welcome Back</h2>
-          <p className="mt-2 text-slate-500">Sign in to your account to continue</p>
+          <h2 className="text-4xl font-extrabold text-slate-900 tracking-tight">Welcome Back</h2>
+          <p className="mt-3 text-slate-500 text-base">Sign in to your account to continue</p>
         </div>
 
         {error && (
@@ -52,9 +62,9 @@ const Login = () => {
         )}
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="space-y-4">
+          <div className="space-y-5">
             <div>
-              <label className="text-sm font-semibold text-slate-700 block mb-2">Email Address</label>
+              <label className="text-sm font-bold text-slate-700 block mb-2">Email Address</label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                 <input 
@@ -63,12 +73,12 @@ const Login = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@example.com" 
                   required
-                  className="w-full pl-12 pr-4 py-3 bg-white/50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300"
+                  className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all duration-300 placeholder:text-slate-400"
                 />
               </div>
             </div>
             <div>
-              <label className="text-sm font-semibold text-slate-700 block mb-2">Password</label>
+              <label className="text-sm font-bold text-slate-700 block mb-2">Password</label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                 <input 
@@ -77,7 +87,7 @@ const Login = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••" 
                   required
-                  className="w-full pl-12 pr-4 py-3 bg-white/50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300"
+                  className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all duration-300 placeholder:text-slate-400"
                 />
               </div>
             </div>
@@ -94,7 +104,7 @@ const Login = () => {
           <button 
             type="submit" 
             disabled={loading}
-            className="w-full flex items-center justify-center gap-2 py-4 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 shadow-lg shadow-indigo-100 group disabled:opacity-70 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-2 py-4 bg-indigo-600 text-white rounded-2xl font-bold text-base hover:bg-indigo-700 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 shadow-lg shadow-indigo-200 group disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {loading ? (
               <Loader2 className="w-5 h-5 animate-spin" />
@@ -107,9 +117,9 @@ const Login = () => {
           </button>
         </form>
 
-        <p className="text-center text-sm text-slate-500">
+        <p className="text-center text-sm text-slate-500 mt-6">
           Don't have an account? {' '}
-          <Link to="/register" className="font-bold text-indigo-600 hover:text-indigo-500 decoration-2 underline-offset-4 hover:underline">Create one for free</Link>
+          <Link to="/register" className="font-bold text-indigo-600 hover:text-indigo-500 transition-colors">Create one for free</Link>
         </p>
       </div>
     </div>

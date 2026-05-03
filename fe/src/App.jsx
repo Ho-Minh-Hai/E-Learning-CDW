@@ -11,6 +11,9 @@ import EvaluationStats from './evaluation/EvaluationStats';
 import ProtectedRoute from './components/ProtectedRoute';
 import NotFound from './pages/NotFound';
 
+// Instructor Components
+import InstructorDashboard from './instructor/InstructorDashboard';
+
 // Student Components
 import StudentDashboard from './student/StudentDashboard';
 import StudentCourses from './student/StudentCourses';
@@ -32,7 +35,7 @@ function App() {
             path="/dashboard" 
             element={
               <ProtectedRoute requireRole="instructor">
-                <Dashboard />
+                <InstructorDashboard />
               </ProtectedRoute>
             } 
           />
