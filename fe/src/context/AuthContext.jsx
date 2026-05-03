@@ -15,8 +15,6 @@ export const AuthProvider = ({ children }) => {
       if (syncedRef.current.has(sessionUser.id)) return;
       syncedRef.current.add(sessionUser.id);
       
-      
-      // Map Supabase roles to database-compatible roles
       const rawRole = sessionUser.user_metadata?.role || 'user';
       let dbRole = 'user';
       if (rawRole === 'instructor') dbRole = 'teacher';
@@ -24,9 +22,14 @@ export const AuthProvider = ({ children }) => {
       else dbRole = 'user';
 
       try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token;
         await fetch('http://localhost:8080/api/profiles/sync', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
           body: JSON.stringify({
             id: sessionUser.id,
             fullName: sessionUser.user_metadata?.full_name,

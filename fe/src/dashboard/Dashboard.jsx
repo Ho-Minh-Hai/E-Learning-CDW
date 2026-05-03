@@ -12,7 +12,8 @@ import {
   Bell,
   Search,
   Plus,
-  Calendar
+  Calendar,
+  Newspaper
 } from 'lucide-react';
 
 const Dashboard = ({ children }) => {
@@ -36,6 +37,7 @@ const Dashboard = ({ children }) => {
   const instructorMenuItems = [
     { icon: <LayoutDashboard size={20} />, label: 'Dashboard', path: '/dashboard' },
     { icon: <BookOpen size={20} />, label: 'My Courses', path: '/courses' },
+    { icon: <Newspaper size={20} />, label: 'Class Feed', path: '/posts' },
     { icon: <MessageSquare size={20} />, label: 'Messages', path: '/chat' },
     { icon: <BarChart3 size={20} />, label: 'Performance', path: '/evaluation' },
     { icon: <UserCircle size={20} />, label: 'Admin Panel', path: '/admin' },
@@ -45,6 +47,7 @@ const Dashboard = ({ children }) => {
   const studentMenuItems = [
     { icon: <LayoutDashboard size={20} />, label: 'Dashboard', path: '/student/dashboard' },
     { icon: <BookOpen size={20} />, label: 'My Courses', path: '/student/courses' },
+    { icon: <Newspaper size={20} />, label: 'Class Feed', path: '/posts' },
     { icon: <MessageSquare size={20} />, label: 'Messages', path: '/chat' },
     { icon: <BarChart3 size={20} />, label: 'Progress', path: '/student/progress' },
   ];

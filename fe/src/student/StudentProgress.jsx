@@ -110,7 +110,7 @@ const StudentProgress = () => {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Overall Progress */}
-            <div className="bg-gradient-to-br from-indigo-600 to-purple-600 p-8 rounded-[2.5rem] text-white shadow-xl relative overflow-hidden">
+            <div className="bg-linear-to-br from-indigo-600 to-purple-600 p-8 rounded-[2.5rem] text-white shadow-xl relative overflow-hidden">
               <div className="relative z-10">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-lg font-bold">Overall Progress</h3>

@@ -8,6 +8,7 @@ import CourseManagement from './courses/CourseManagement';
 import AdminDashboard from './admin/AdminDashboard';
 import RealtimeChat from './realtime/RealtimeChat';
 import EvaluationStats from './evaluation/EvaluationStats';
+import PostFeed from './posts/PostFeed';
 import ProtectedRoute from './components/ProtectedRoute';
 import NotFound from './pages/NotFound';
 
@@ -70,6 +71,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <RealtimeChat />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/posts" 
+            element={
+              <ProtectedRoute>
+                <PostFeed />
               </ProtectedRoute>
             } 
           />

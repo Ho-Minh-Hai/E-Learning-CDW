@@ -1,10 +1,25 @@
-import React, { useState, useEffect, useContext, useRef, useCallback } from 'react';
+import { useState, useEffect, useContext, useRef, useCallback } from 'react';
 import Dashboard from '../dashboard/Dashboard';
-import { Send, Hash, Search, Video, Phone, Info, MoreVertical, Smile, UserPlus, MessageCircle } from 'lucide-react';
+import StudentLayout from '../student/StudentLayout';
+import { Send, Search, Video, Phone, Info, MoreVertical, Smile, UserPlus, MessageCircle } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { AuthContext } from '../context/AuthContext';
 
 const API_URL = 'http://localhost:8080/api';
+
+// Helper: fetch với Bearer token từ Supabase session
+const authFetch = async (url, options = {}) => {
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
+  return fetch(url, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...options.headers,
+    },
+  });
+};
 
 const RealtimeChat = () => {
   const { user } = useContext(AuthContext);
@@ -27,7 +42,7 @@ const RealtimeChat = () => {
   const fetchConversations = useCallback(async () => {
     if (!user?.id) return;
     try {
-      const res = await fetch(`${API_URL}/chat/conversations/${user.id}`);
+      const res = await authFetch(`${API_URL}/chat/conversations/${user.id}`);
       if (!res.ok) return;
       const data = await res.json();
       if (Array.isArray(data)) setConversations(data);
@@ -42,7 +57,7 @@ const RealtimeChat = () => {
   const fetchMessages = useCallback(async (convId) => {
     if (!convId) return;
     try {
-      const res = await fetch(`${API_URL}/chat/messages/${convId}`);
+      const res = await authFetch(`${API_URL}/chat/messages/${convId}`);
       if (!res.ok) return;
       const data = await res.json();
       if (Array.isArray(data)) setMessages(data);
@@ -72,7 +87,7 @@ const RealtimeChat = () => {
     setSearchQuery(q);
     if (q.length < 2) { setSearchResults([]); return; }
     try {
-      const res = await fetch(`${API_URL}/profiles/search?query=${encodeURIComponent(q)}`);
+      const res = await authFetch(`${API_URL}/profiles/search?query=${encodeURIComponent(q)}`);
       if (!res.ok) return;
       const data = await res.json();
       if (Array.isArray(data)) setSearchResults(data.filter(u => u.id !== user.id));
@@ -84,7 +99,7 @@ const RealtimeChat = () => {
   // ── Start conversation ────────────────────────────────────────────
   const startConversation = async (targetUser) => {
     try {
-      const res = await fetch(`${API_URL}/chat/conversation?user1Id=${user.id}&user2Id=${targetUser.id}`);
+      const res = await authFetch(`${API_URL}/chat/conversation?user1Id=${user.id}&user2Id=${targetUser.id}`);
       if (!res.ok) throw new Error(await res.text());
       const conv = await res.json();
       if (conv?.id) {
@@ -105,9 +120,8 @@ const RealtimeChat = () => {
     if (!newMessage.trim() || !activeConversation?.id || sending) return;
     setSending(true);
     try {
-      const res = await fetch(`${API_URL}/chat/messages`, {
+      const res = await authFetch(`${API_URL}/chat/messages`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           conversationId: activeConversation.id,
           senderId: user.id,
@@ -137,8 +151,11 @@ const RealtimeChat = () => {
 
   const otherUser = activeConversation ? getOtherUser(activeConversation) : null;
 
+  const userRole = user?.user_metadata?.role;
+  const Layout = userRole === 'student' ? StudentLayout : Dashboard;
+
   return (
-    <Dashboard>
+    <Layout>
       <div className="flex-1 flex overflow-hidden h-full" style={{ fontFamily: "'Inter', sans-serif" }}>
 
         {/* ── Sidebar ── */}
@@ -313,7 +330,7 @@ const RealtimeChat = () => {
           )}
         </div>
       </div>
-    </Dashboard>
+    </Layout>
   );
 };
 
