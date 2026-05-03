@@ -17,7 +17,7 @@ export const AuthProvider = ({ children }) => {
       
       const rawRole = sessionUser.user_metadata?.role || 'user';
       let dbRole = 'user';
-      if (rawRole === 'instructor') dbRole = 'teacher';
+      if (rawRole === 'teacher' || rawRole === 'instructor') dbRole = 'teacher';
       else if (rawRole === 'admin') dbRole = 'admin';
       else dbRole = 'user';
 
@@ -34,7 +34,7 @@ export const AuthProvider = ({ children }) => {
             id: sessionUser.id,
             fullName: sessionUser.user_metadata?.full_name,
             avatarUrl: sessionUser.user_metadata?.avatar_url,
-            role: dbRole
+            email: sessionUser.email,
           })
         });
       } catch (err) {

@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import {
   BookOpen, Clock, Trophy, TrendingUp, CheckCircle,
   Calendar, Target, Megaphone, FileText, ClipboardList,
-  ArrowRight, Bell
+  ArrowRight, Bell, X, Plus
 } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
 import { supabase } from '../supabaseClient';
@@ -98,7 +98,7 @@ const StudentDashboard = () => {
 
   return (
     <StudentLayout>
-      <div className="flex-1 overflow-y-auto p-8 space-y-8">
+      <div className="flex-1 overflow-y-auto p-8 space-y-8 relative">
 
         {/* Page header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -108,13 +108,22 @@ const StudentDashboard = () => {
             </h1>
             <p className="text-slate-500 mt-1">Here's what's happening in your classes today.</p>
           </div>
-          <Link
-            to="/posts"
-            className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition shadow-lg shadow-indigo-100 w-fit"
-          >
-            <BookOpen size={18} />
-            Class Feed
-          </Link>
+          <div className="flex gap-3">
+            <Link
+              to="/student/courses"
+              className="flex items-center gap-2 px-5 py-2.5 bg-indigo-50 text-indigo-600 rounded-xl font-bold hover:bg-indigo-100 transition shadow-sm w-fit"
+            >
+              <Plus size={18} />
+              Go to My Class
+            </Link>
+            <Link
+              to="/posts"
+              className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition shadow-lg shadow-indigo-100 w-fit"
+            >
+              <BookOpen size={18} />
+              Class Feed
+            </Link>
+          </div>
         </div>
 
         {/* Stats */}

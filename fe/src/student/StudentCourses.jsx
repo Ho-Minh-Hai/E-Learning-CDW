@@ -1,29 +1,159 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import StudentLayout from './StudentLayout';
-import { BookOpen, PlayCircle, Clock, CheckCircle, Star, Users, Filter } from 'lucide-react';
+import { AuthContext } from '../context/AuthContext';
+import { supabase } from '../supabaseClient';
+import { BookOpen, PlayCircle, Clock, CheckCircle, Star, Users, Filter, Plus, X } from 'lucide-react';
+
+const API_URL = 'http://localhost:8080/api';
 
 const StudentCourses = () => {
+  const { user } = useContext(AuthContext);
   const [activeTab, setActiveTab] = useState('enrolled');
+  const [classes, setClasses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  
+  const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
+  const [joinCode, setJoinCode] = useState('');
+  const [joinSuccess, setJoinSuccess] = useState(null);
+
+  const fetchClasses = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(`${API_URL}/classes/student/${user.id}`, {
+        headers: {
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {})
+        }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setClasses(data);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user?.id) fetchClasses();
+
+    const channel = supabase.channel('public:class_members_student')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'class_members' }, (payload) => {
+        if (payload.new.student_id === user?.id) {
+          fetchClasses();
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id]);
+
+  const handleJoinClass = async (e) => {
+    e.preventDefault();
+    if (joinCode.length !== 6) {
+      alert('Mã lớp học phải gồm 6 ký tự');
+      return;
+    }
+    
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(`${API_URL}/classes/join`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {})
+        },
+        body: JSON.stringify({ joinCode: joinCode, studentId: user.id })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setJoinSuccess(data);
+        fetchClasses(); // Refresh list
+      } else {
+        alert('Mã tham gia không hợp lệ hoặc lỗi kết nối');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Lỗi kết nối server');
+    }
+  };
 
   return (
     <StudentLayout>
-      <div className="flex-1 overflow-y-auto p-8 space-y-8">
+      <div className="flex-1 overflow-y-auto p-8 space-y-8 relative">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
            <div>
-              <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">My Courses</h1>
-              <p className="text-slate-500 mt-1">Manage and track your enrolled courses.</p>
+              <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">My Class</h1>
+              <p className="text-slate-500 mt-1">Manage and track your enrolled classes.</p>
            </div>
            <div className="flex gap-3">
-             <button className="flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold hover:bg-slate-50 transition">
-                <Filter size={18} />
-                Filter
-             </button>
-             <button className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition shadow-lg shadow-indigo-100">
-                <BookOpen size={18} />
-                Browse All Courses
+             <button 
+               onClick={() => setIsJoinModalOpen(true)}
+               className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition shadow-lg shadow-indigo-100"
+             >
+                <Plus size={18} />
+                Tham gia lớp
              </button>
            </div>
         </div>
+
+        {/* Join Class Modal */}
+        {isJoinModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+            <div className="bg-white rounded-[2rem] w-full max-w-md p-8 shadow-2xl relative">
+              <button 
+                onClick={() => { setIsJoinModalOpen(false); setJoinSuccess(null); setJoinCode(''); }}
+                className="absolute top-6 right-6 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-xl transition"
+              >
+                <X size={20} />
+              </button>
+              
+              <h2 className="text-2xl font-bold text-slate-900 mb-6">Tham gia lớp học</h2>
+              
+              {joinSuccess ? (
+                <div className="text-center space-y-6">
+                  <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
+                    <CheckCircle size={40} />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-slate-900">{joinSuccess.name}</h3>
+                    <p className="text-sm text-slate-500 mt-1">Bạn đã tham gia lớp học thành công!</p>
+                  </div>
+                  <button 
+                    onClick={() => { setIsJoinModalOpen(false); setJoinSuccess(null); setJoinCode(''); }}
+                    className="w-full py-3.5 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition"
+                  >
+                    Đóng
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleJoinClass} className="space-y-6">
+                  <div>
+                    <label className="text-sm font-bold text-slate-700 block mb-2">Mã tham gia lớp (6 ký tự)</label>
+                    <input 
+                      type="text" 
+                      value={joinCode}
+                      onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+                      placeholder="VD: 123456"
+                      maxLength={6}
+                      required
+                      className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder:text-slate-400 text-center tracking-widest font-mono text-lg font-bold"
+                    />
+                  </div>
+                  <button 
+                    type="submit"
+                    className="w-full py-3.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition shadow-lg shadow-indigo-200"
+                  >
+                    Tham gia
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Tabs */}
         <div className="flex gap-2 border-b border-slate-200">
@@ -37,71 +167,45 @@ const StudentCourses = () => {
                   : 'border-transparent text-slate-500 hover:text-slate-900'
               }`}
             >
-              {tab === 'enrolled' && 'Enrolled (6)'}
-              {tab === 'completed' && 'Completed (12)'}
-              {tab === 'saved' && 'Saved (4)'}
+              {tab === 'enrolled' && `Enrolled (${classes.length})`}
+              {tab === 'completed' && 'Completed (0)'}
+              {tab === 'saved' && 'Saved (0)'}
             </button>
           ))}
         </div>
 
         {/* Course Grid */}
         {activeTab === 'enrolled' && (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <EnrolledCourseCard 
-              title="Advanced Java Spring Boot"
-              instructor="Prof. John Maverick"
-              progress={65}
-              totalLessons={18}
-              completedLessons={12}
-              thumbnail="indigo"
-              rating={4.8}
-            />
-            <EnrolledCourseCard 
-              title="UI/UX Masterclass 2024"
-              instructor="Sarah Design"
-              progress={40}
-              totalLessons={24}
-              completedLessons={10}
-              thumbnail="purple"
-              rating={4.9}
-            />
-            <EnrolledCourseCard 
-              title="Data Science Fundamentals"
-              instructor="Dr. Michael Chen"
-              progress={85}
-              totalLessons={20}
-              completedLessons={17}
-              thumbnail="emerald"
-              rating={4.7}
-            />
-            <EnrolledCourseCard 
-              title="Mobile App Development"
-              instructor="Alex Johnson"
-              progress={25}
-              totalLessons={16}
-              completedLessons={4}
-              thumbnail="orange"
-              rating={4.6}
-            />
-            <EnrolledCourseCard 
-              title="Cloud Computing with AWS"
-              instructor="Maria Garcia"
-              progress={50}
-              totalLessons={22}
-              completedLessons={11}
-              thumbnail="blue"
-              rating={4.8}
-            />
-            <EnrolledCourseCard 
-              title="Digital Marketing Strategy"
-              instructor="David Lee"
-              progress={70}
-              totalLessons={15}
-              completedLessons={11}
-              thumbnail="pink"
-              rating={4.5}
-            />
-          </div>
+          loading ? (
+            <div className="flex justify-center py-8">
+              <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
+            </div>
+          ) : classes.length === 0 ? (
+            <div className="text-center py-12 bg-white rounded-[2.5rem] border border-slate-100 shadow-sm">
+              <BookOpen className="w-16 h-16 text-slate-200 mx-auto mb-4" />
+              <h3 className="text-xl font-bold text-slate-900">You haven't joined any classes yet</h3>
+              <p className="text-slate-500 mt-2">Click the button above to join your first class.</p>
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {classes.map((cls, idx) => {
+                const colors = ['indigo', 'purple', 'emerald', 'orange', 'blue', 'pink'];
+                const color = colors[idx % colors.length];
+                return (
+                  <EnrolledCourseCard 
+                    key={cls.id}
+                    title={cls.name}
+                    instructor={cls.teacherName || 'Instructor'}
+                    progress={0}
+                    totalLessons={0}
+                    completedLessons={0}
+                    thumbnail={color}
+                    rating={5.0}
+                  />
+                );
+              })}
+            </div>
+          )
         )}
 
         {activeTab === 'completed' && (

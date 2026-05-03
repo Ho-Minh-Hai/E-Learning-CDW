@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
+import { Link } from 'react-router-dom';
 import Dashboard from '../dashboard/Dashboard';
 import { 
   Plus, 
@@ -15,15 +16,18 @@ import {
   MessageSquare,
   BarChart3,
   ArrowUpRight,
-  Star
+  Star,
+  X
 } from 'lucide-react';
+
+const API_URL = 'http://localhost:8080/api';
 
 const InstructorDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
 
   return (
     <Dashboard>
-      <div className="flex-1 overflow-y-auto p-8 space-y-8">
+      <div className="flex-1 overflow-y-auto p-8 space-y-8 relative">
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
@@ -35,10 +39,13 @@ const InstructorDashboard = () => {
               <Calendar size={18} />
               Schedule
             </button>
-            <button className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition shadow-lg shadow-indigo-200">
+            <Link 
+              to="/courses"
+              className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition shadow-lg shadow-indigo-200"
+            >
               <Plus size={18} />
-              Create Course
-            </button>
+              Go to My Class
+            </Link>
           </div>
         </div>
 
