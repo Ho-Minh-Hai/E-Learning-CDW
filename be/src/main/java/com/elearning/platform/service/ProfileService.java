@@ -19,7 +19,15 @@ public class ProfileService {
     @Transactional
     public Profile syncProfile(ProfileDTO profileDto) {
         return profileRepository.findById(profileDto.getId())
+                .map(existing -> {
+                    // Update existing profile
+                    if (profileDto.getFullName() != null) existing.setFullName(profileDto.getFullName());
+                    if (profileDto.getAvatarUrl() != null) existing.setAvatarUrl(profileDto.getAvatarUrl());
+                    if (profileDto.getRole() != null) existing.setRole(profileDto.getRole());
+                    return profileRepository.save(existing);
+                })
                 .orElseGet(() -> {
+                    // Create new profile
                     Profile newProfile = Profile.builder()
                             .id(profileDto.getId())
                             .fullName(profileDto.getFullName())
