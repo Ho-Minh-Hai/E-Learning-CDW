@@ -33,10 +33,9 @@ const Dashboard = ({ children }) => {
     }
   };
 
-  // Menu items for instructor/admin
   const instructorMenuItems = [
     { icon: <LayoutDashboard size={20} />, label: 'Dashboard', path: '/dashboard' },
-    { icon: <BookOpen size={20} />, label: 'My Courses', path: '/courses' },
+    { icon: <BookOpen size={20} />, label: 'My Class', path: '/courses' },
     { icon: <Newspaper size={20} />, label: 'Class Feed', path: '/posts' },
     { icon: <MessageSquare size={20} />, label: 'Messages', path: '/chat' },
     { icon: <BarChart3 size={20} />, label: 'Performance', path: '/evaluation' },
@@ -46,7 +45,7 @@ const Dashboard = ({ children }) => {
   // Menu items for students
   const studentMenuItems = [
     { icon: <LayoutDashboard size={20} />, label: 'Dashboard', path: '/student/dashboard' },
-    { icon: <BookOpen size={20} />, label: 'My Courses', path: '/student/courses' },
+    { icon: <BookOpen size={20} />, label: 'My Class', path: '/student/courses' },
     { icon: <Newspaper size={20} />, label: 'Class Feed', path: '/posts' },
     { icon: <MessageSquare size={20} />, label: 'Messages', path: '/chat' },
     { icon: <BarChart3 size={20} />, label: 'Progress', path: '/student/progress' },
@@ -119,7 +118,7 @@ const Dashboard = ({ children }) => {
                   {user?.user_metadata?.full_name || 'User'}
                 </p>
                 <p className="text-xs text-slate-500 font-medium tracking-tight">
-                  {userRole === 'student' ? 'Student' : userRole === 'instructor' ? 'Instructor' : 'Admin'}
+                  {userRole === 'user' || userRole === 'student' ? 'Student' : userRole === 'teacher' || userRole === 'instructor' ? 'Teacher' : 'Admin'}
                 </p>
               </div>
               <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 border-2 border-white shadow-md ring-1 ring-slate-100" />
