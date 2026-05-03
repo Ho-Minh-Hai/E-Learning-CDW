@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -18,19 +19,12 @@ public class ProfileService {
     @Transactional
     public Profile syncProfile(ProfileDTO profileDto) {
         return profileRepository.findById(profileDto.getId())
-                .map(existing -> {
-                    existing.setFullName(profileDto.getFullName());
-                    existing.setAvatarUrl(profileDto.getAvatarUrl());
-                    existing.setEmail(profileDto.getEmail());
-                    return profileRepository.save(existing);
-                })
                 .orElseGet(() -> {
                     Profile newProfile = Profile.builder()
                             .id(profileDto.getId())
                             .fullName(profileDto.getFullName())
                             .avatarUrl(profileDto.getAvatarUrl())
-                            .email(profileDto.getEmail())
-                            .role(profileDto.getRole() != null ? profileDto.getRole() : "STUDENT")
+                            .role(profileDto.getRole() != null ? profileDto.getRole() : "user")
                             .build();
                     return profileRepository.save(newProfile);
                 });
@@ -39,5 +33,9 @@ public class ProfileService {
     public Profile getProfile(UUID id) {
         return profileRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Profile not found"));
+    }
+
+    public List<Profile> searchProfiles(String query) {
+        return profileRepository.findByFullNameContainingIgnoreCase(query);
     }
 }

@@ -1,9 +1,6 @@
 package com.elearning.platform.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,25 +15,26 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "profiles")
+@Table(name = "conversations")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Profile {
+public class Conversation {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     @JdbcTypeCode(SqlTypes.UUID)
+    @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 
-    @Column(name = "full_name")
-    private String fullName;
+    @ManyToOne
+    @JoinColumn(name = "user1_id", nullable = false)
+    private Profile user1;
 
-    @Column(name = "avatar_url")
-    private String avatarUrl;
-
-    @Builder.Default
-    private String role = "user";
+    @ManyToOne
+    @JoinColumn(name = "user2_id", nullable = false)
+    private Profile user2;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
