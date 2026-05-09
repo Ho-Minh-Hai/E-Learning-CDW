@@ -1,5 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { Link } from 'react-router-dom';
+import { AuthContext } from '../context/AuthContext';
+import { supabase } from '../supabaseClient';
 import Dashboard from '../dashboard/Dashboard';
 import { 
   Plus, 
@@ -23,7 +25,57 @@ import {
 const API_URL = 'http://localhost:8080/api';
 
 const InstructorDashboard = () => {
+  const { user } = useContext(AuthContext);
   const [activeTab, setActiveTab] = useState('overview');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [notification, setNotification] = useState({
+    title: '',
+    type: 'ANNOUNCEMENT',
+    content: '',
+    fileUrl: '',
+    fileName: '',
+    deadline: ''
+  });
+
+  const handleSendNotification = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      const payload = {
+        authorId: user?.id,
+        postType: notification.type,
+        title: notification.title,
+        content: notification.content,
+        fileUrl: notification.fileUrl || null,
+        fileName: notification.fileName || null,
+        deadline: notification.deadline ? new Date(notification.deadline).toISOString() : null
+      };
+      
+      const response = await fetch(`${API_URL}/posts`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) throw new Error('Failed to send');
+      
+      alert('Notification sent and post created!');
+      setIsModalOpen(false);
+      setNotification({ title: '', type: 'ANNOUNCEMENT', content: '', fileUrl: '', fileName: '', deadline: '' });
+    } catch (error) {
+      console.error('Error sending notification:', error);
+      alert('Failed to send notification');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Dashboard>
@@ -35,19 +87,114 @@ const InstructorDashboard = () => {
             <p className="text-slate-500 mt-1">Manage your courses and track student progress</p>
           </div>
           <div className="flex gap-3">
-            <button className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold hover:bg-slate-50 transition shadow-sm">
-              <Calendar size={18} />
-              Schedule
+            <button 
+              onClick={() => setIsModalOpen(true)}
+              className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold hover:bg-slate-50 transition shadow-sm"
+            >
+              <Plus size={18} />
+              Send Notification
             </button>
             <Link 
               to="/courses"
               className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition shadow-lg shadow-indigo-200"
             >
-              <Plus size={18} />
+              <Calendar size={18} />
               Go to My Class
             </Link>
           </div>
         </div>
+
+        {/* Notification Modal */}
+        {isModalOpen && (
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
+              <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <div>
+                  <h3 className="text-2xl font-bold text-slate-900">Send Notification</h3>
+                  <p className="text-slate-500 text-sm mt-1">Announce materials or assignments to your students</p>
+                </div>
+                <button 
+                  onClick={() => setIsModalOpen(false)}
+                  className="p-2 hover:bg-white rounded-full transition-colors border border-transparent hover:border-slate-200"
+                >
+                  <X size={20} className="text-slate-400" />
+                </button>
+              </div>
+              
+              <form onSubmit={handleSendNotification} className="p-8 space-y-6">
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-slate-700 ml-1">Title</label>
+                  <input 
+                    type="text"
+                    required
+                    placeholder="e.g. New Material for Chapter 5"
+                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all"
+                    value={notification.title}
+                    onChange={(e) => setNotification({...notification, title: e.target.value})}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700 ml-1">Type</label>
+                    <select 
+                      className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all appearance-none cursor-pointer"
+                      value={notification.type}
+                      onChange={(e) => setNotification({...notification, type: e.target.value})}
+                    >
+                      <option value="ANNOUNCEMENT">Announcement</option>
+                      <option value="DOCUMENT">Document / Material</option>
+                      <option value="ASSIGNMENT">Assignment</option>
+                    </select>
+                  </div>
+                  {notification.type === 'ASSIGNMENT' && (
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-slate-700 ml-1">Deadline</label>
+                      <input 
+                        type="datetime-local"
+                        required
+                        className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all"
+                        value={notification.deadline}
+                        onChange={(e) => setNotification({...notification, deadline: e.target.value})}
+                      />
+                    </div>
+                  )}
+                  {notification.type === 'DOCUMENT' && (
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-slate-700 ml-1">File URL</label>
+                      <input 
+                        type="text"
+                        placeholder="https://..."
+                        className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all"
+                        value={notification.fileUrl}
+                        onChange={(e) => setNotification({...notification, fileUrl: e.target.value})}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-slate-700 ml-1">Content</label>
+                  <textarea 
+                    rows="4"
+                    placeholder="Describe the notification..."
+                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all resize-none"
+                    value={notification.content}
+                    onChange={(e) => setNotification({...notification, content: e.target.value})}
+                  ></textarea>
+                </div>
+
+                <button 
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition shadow-lg shadow-indigo-200 disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {loading ? 'Sending...' : 'Send Notification'}
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
 
         {/* Stats Overview */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

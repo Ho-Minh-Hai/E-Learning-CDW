@@ -187,6 +187,7 @@ const StudentLayout = ({ children }) => {
   // readIds persisted per-user in localStorage
   const [readIds, setReadIds] = useState(() => getReadIds(userId));
   const [showNotifications, setShowNotifications] = useState(false);
+  const [newNotification, setNewNotification] = useState(null);
 
   // Re-load readIds when userId changes (different account)
   useEffect(() => {
@@ -224,7 +225,12 @@ const StudentLayout = ({ children }) => {
         event: 'INSERT',
         schema: 'public',
         table: 'posts',
-      }, fetchPosts)
+      }, (payload) => {
+        setNewNotification(payload.new);
+        fetchPosts();
+        // Clear toast after 5 seconds
+        setTimeout(() => setNewNotification(null), 5000);
+      })
       .subscribe();
     return () => supabase.removeChannel(channel);
   }, [fetchPosts]);
@@ -370,6 +376,27 @@ const StudentLayout = ({ children }) => {
             </div>
           </div>
         </header>
+
+        {/* Global Real-time Notification Toast */}
+        {newNotification && (
+          <div className="fixed top-24 right-8 z-[100] animate-in slide-in-from-right duration-500">
+            <div className="bg-white border-l-4 border-indigo-600 rounded-2xl shadow-2xl p-6 flex items-start gap-4 max-w-sm">
+              <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center shrink-0">
+                <Megaphone size={24} />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider">New {newNotification.post_type}</span>
+                  <button onClick={() => setNewNotification(null)} className="text-slate-400 hover:text-slate-600 transition-colors">
+                    <X size={16} />
+                  </button>
+                </div>
+                <h4 className="font-bold text-slate-900 text-sm leading-tight">{newNotification.title}</h4>
+                <p className="text-xs text-slate-500 mt-1 line-clamp-2">{newNotification.content}</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Content */}
         {children}
