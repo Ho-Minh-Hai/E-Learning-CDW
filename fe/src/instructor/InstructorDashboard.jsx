@@ -19,7 +19,8 @@ import {
   BarChart3,
   ArrowUpRight,
   Star,
-  X
+  X,
+  Upload
 } from 'lucide-react';
 
 const API_URL = 'http://localhost:8080/api';
@@ -29,14 +30,29 @@ const InstructorDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [notification, setNotification] = useState({
     title: '',
     type: 'ANNOUNCEMENT',
     content: '',
     fileUrl: '',
     fileName: '',
+    file: null, // New field for local file object
     deadline: ''
   });
+
+  const uploadToStorage = async (file) => {
+    const ext = file.name.split('.').pop();
+    const path = `posts/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+    const { data, error } = await supabase.storage
+      .from('post-files')
+      .upload(path, file, { upsert: false });
+    
+    if (error) throw new Error(`Upload failed: ${error.message}`);
+    
+    const { data: urlData } = supabase.storage.from('post-files').getPublicUrl(data.path);
+    return { fileUrl: urlData.publicUrl, fileName: file.name };
+  };
 
   const handleSendNotification = async (e) => {
     e.preventDefault();
@@ -45,13 +61,25 @@ const InstructorDashboard = () => {
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token;
 
+      let resolvedFileUrl = notification.fileUrl;
+      let resolvedFileName = notification.fileName;
+
+      // Handle file upload if present
+      if (notification.file) {
+        setUploading(true);
+        const uploadResult = await uploadToStorage(notification.file);
+        resolvedFileUrl = uploadResult.fileUrl;
+        resolvedFileName = uploadResult.fileName;
+        setUploading(false);
+      }
+
       const payload = {
         authorId: user?.id,
         postType: notification.type,
         title: notification.title,
         content: notification.content,
-        fileUrl: notification.fileUrl || null,
-        fileName: notification.fileName || null,
+        fileUrl: resolvedFileUrl || null,
+        fileName: resolvedFileName || null,
         deadline: notification.deadline ? new Date(notification.deadline).toISOString() : null
       };
       
@@ -68,12 +96,13 @@ const InstructorDashboard = () => {
       
       alert('Notification sent and post created!');
       setIsModalOpen(false);
-      setNotification({ title: '', type: 'ANNOUNCEMENT', content: '', fileUrl: '', fileName: '', deadline: '' });
+      setNotification({ title: '', type: 'ANNOUNCEMENT', content: '', fileUrl: '', fileName: '', file: null, deadline: '' });
     } catch (error) {
       console.error('Error sending notification:', error);
-      alert('Failed to send notification');
+      alert(error.message || 'Failed to send notification');
     } finally {
       setLoading(false);
+      setUploading(false);
     }
   };
 
@@ -161,14 +190,43 @@ const InstructorDashboard = () => {
                   )}
                   {notification.type === 'DOCUMENT' && (
                     <div className="space-y-2">
-                      <label className="text-sm font-bold text-slate-700 ml-1">File URL</label>
-                      <input 
-                        type="text"
-                        placeholder="https://..."
-                        className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all"
-                        value={notification.fileUrl}
-                        onChange={(e) => setNotification({...notification, fileUrl: e.target.value})}
-                      />
+                      <label className="text-sm font-bold text-slate-700 ml-1">Attachment (File or URL)</label>
+                      <div className="flex flex-col gap-3">
+                        <div className="relative group cursor-pointer">
+                          <input 
+                            type="file"
+                            className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                            onChange={(e) => setNotification({...notification, file: e.target.files[0], fileUrl: ''})}
+                          />
+                          <div className={`w-full px-5 py-4 bg-slate-50 border border-dashed rounded-2xl flex items-center justify-center gap-3 transition-all ${notification.file ? 'border-indigo-400 bg-indigo-50/30' : 'border-slate-200 group-hover:border-indigo-400'}`}>
+                            <Upload className={`w-5 h-5 ${notification.file ? 'text-indigo-600' : 'text-slate-400'}`} />
+                            <span className={`text-sm font-medium ${notification.file ? 'text-indigo-700' : 'text-slate-500'}`}>
+                              {notification.file ? notification.file.name : 'Click to upload file'}
+                            </span>
+                            {notification.file && (
+                              <button 
+                                type="button"
+                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setNotification({...notification, file: null}); }}
+                                className="ml-auto p-1 hover:bg-red-50 text-red-500 rounded-lg transition"
+                              >
+                                <X size={14} />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <div className="h-px bg-slate-100 flex-1" />
+                          <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">OR</span>
+                          <div className="h-px bg-slate-100 flex-1" />
+                        </div>
+                        <input 
+                          type="text"
+                          placeholder="Paste public file URL instead..."
+                          className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all text-sm"
+                          value={notification.fileUrl}
+                          onChange={(e) => setNotification({...notification, fileUrl: e.target.value, file: null})}
+                        />
+                      </div>
                     </div>
                   )}
                 </div>
@@ -186,10 +244,15 @@ const InstructorDashboard = () => {
 
                 <button 
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || uploading}
                   className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition shadow-lg shadow-indigo-200 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
-                  {loading ? 'Sending...' : 'Send Notification'}
+                  {uploading ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Uploading...
+                    </>
+                  ) : loading ? 'Sending...' : 'Send Notification'}
                 </button>
               </form>
             </div>

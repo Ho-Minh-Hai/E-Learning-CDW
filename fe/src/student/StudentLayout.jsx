@@ -380,20 +380,29 @@ const StudentLayout = ({ children }) => {
         {/* Global Real-time Notification Toast */}
         {newNotification && (
           <div className="fixed top-24 right-8 z-[100] animate-in slide-in-from-right duration-500">
-            <div className="bg-white border-l-4 border-indigo-600 rounded-2xl shadow-2xl p-6 flex items-start gap-4 max-w-sm">
-              <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center shrink-0">
-                <Megaphone size={24} />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider">New {newNotification.post_type}</span>
-                  <button onClick={() => setNewNotification(null)} className="text-slate-400 hover:text-slate-600 transition-colors">
-                    <X size={16} />
-                  </button>
+            <div className="relative group">
+              <Link 
+                to="/posts" 
+                onClick={() => { handleMarkOneRead(newNotification.id); setNewNotification(null); }}
+                className="bg-white border-l-4 border-indigo-600 rounded-2xl shadow-2xl p-6 flex items-start gap-4 max-w-sm hover:bg-slate-50 transition-all block"
+              >
+                <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center shrink-0">
+                  <Megaphone size={24} />
                 </div>
-                <h4 className="font-bold text-slate-900 text-sm leading-tight">{newNotification.title}</h4>
-                <p className="text-xs text-slate-500 mt-1 line-clamp-2">{newNotification.content}</p>
-              </div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider">New {newNotification.post_type || 'Update'}</span>
+                  </div>
+                  <h4 className="font-bold text-slate-900 text-sm leading-tight">{newNotification.title}</h4>
+                  <p className="text-xs text-slate-500 mt-1 line-clamp-2">{newNotification.content}</p>
+                </div>
+              </Link>
+              <button 
+                onClick={() => setNewNotification(null)} 
+                className="absolute -top-2 -right-2 w-6 h-6 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-400 hover:text-red-500 shadow-sm transition-all"
+              >
+                <X size={14} />
+              </button>
             </div>
           </div>
         )}
