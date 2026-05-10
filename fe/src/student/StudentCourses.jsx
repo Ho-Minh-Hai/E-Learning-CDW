@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext, useCallback } from 'react';
 import StudentLayout from './StudentLayout';
+import PostDetailView from './PostDetailView';
 import { AuthContext } from '../context/AuthContext';
 import { supabase } from '../supabaseClient';
 import { 
@@ -180,6 +181,7 @@ const StudentCourses = () => {
   const [selectedClass, setSelectedClass] = useState(null);
   const [classPosts, setClassPosts] = useState([]);
   const [postsLoading, setPostsLoading] = useState(false);
+  const [selectedPost, setSelectedPost] = useState(null);
   
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
   const [joinCode, setJoinCode] = useState('');
@@ -351,6 +353,7 @@ const StudentCourses = () => {
                         key={post.id}
                         post={post}
                         currentUserId={user?.id}
+                        onSelect={setSelectedPost}
                       />
                     ))}
                   </div>
@@ -547,6 +550,15 @@ const StudentCourses = () => {
           </>
         )}
       </div>
+
+      {/* Post Detail Modal */}
+      {selectedPost && (
+        <PostDetailView
+          post={selectedPost}
+          onClose={() => setSelectedPost(null)}
+          currentUserId={user?.id}
+        />
+      )}
     </StudentLayout>
   );
 };
@@ -604,12 +616,15 @@ const POST_TYPES = {
 };
 
 // ── Class Post Card ────────────────────────────────────────────────────────────
-const ClassPostCard = ({ post, currentUserId }) => {
+const ClassPostCard = ({ post, currentUserId, onSelect }) => {
   const cfg = POST_TYPES[post.postType] || POST_TYPES.ANNOUNCEMENT;
   const Icon = cfg.icon;
 
   return (
-    <div className={`bg-white border ${cfg.border} rounded-2xl p-6 shadow-sm hover:shadow-md transition`}>
+    <div 
+      onClick={() => onSelect(post)}
+      className={`bg-white border ${cfg.border} rounded-2xl p-6 shadow-sm hover:shadow-md transition cursor-pointer hover:border-slate-400`}
+    >
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div className={`inline-flex items-center gap-2 px-3 py-1.5 ${cfg.badge} rounded-lg`}>
