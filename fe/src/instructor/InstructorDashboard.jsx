@@ -1,5 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { Link } from 'react-router-dom';
+import { AuthContext } from '../context/AuthContext';
+import { supabase } from '../supabaseClient';
 import Dashboard from '../dashboard/Dashboard';
 import { 
   Plus, 
@@ -17,13 +19,92 @@ import {
   BarChart3,
   ArrowUpRight,
   Star,
-  X
+  X,
+  Upload
 } from 'lucide-react';
 
 const API_URL = 'http://localhost:8080/api';
 
 const InstructorDashboard = () => {
+  const { user } = useContext(AuthContext);
   const [activeTab, setActiveTab] = useState('overview');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [notification, setNotification] = useState({
+    title: '',
+    type: 'ANNOUNCEMENT',
+    content: '',
+    fileUrl: '',
+    fileName: '',
+    file: null, // New field for local file object
+    deadline: ''
+  });
+
+  const uploadToStorage = async (file) => {
+    const ext = file.name.split('.').pop();
+    const path = `posts/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+    const { data, error } = await supabase.storage
+      .from('post-files')
+      .upload(path, file, { upsert: false });
+    
+    if (error) throw new Error(`Upload failed: ${error.message}`);
+    
+    const { data: urlData } = supabase.storage.from('post-files').getPublicUrl(data.path);
+    return { fileUrl: urlData.publicUrl, fileName: file.name };
+  };
+
+  const handleSendNotification = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      let resolvedFileUrl = notification.fileUrl;
+      let resolvedFileName = notification.fileName;
+
+      // Handle file upload if present
+      if (notification.file) {
+        setUploading(true);
+        const uploadResult = await uploadToStorage(notification.file);
+        resolvedFileUrl = uploadResult.fileUrl;
+        resolvedFileName = uploadResult.fileName;
+        setUploading(false);
+      }
+
+      const payload = {
+        authorId: user?.id,
+        postType: notification.type,
+        title: notification.title,
+        content: notification.content,
+        fileUrl: resolvedFileUrl || null,
+        fileName: resolvedFileName || null,
+        deadline: notification.deadline ? new Date(notification.deadline).toISOString() : null
+      };
+      
+      const response = await fetch(`${API_URL}/posts`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) throw new Error('Failed to send');
+      
+      alert('Notification sent and post created!');
+      setIsModalOpen(false);
+      setNotification({ title: '', type: 'ANNOUNCEMENT', content: '', fileUrl: '', fileName: '', file: null, deadline: '' });
+    } catch (error) {
+      console.error('Error sending notification:', error);
+      alert(error.message || 'Failed to send notification');
+    } finally {
+      setLoading(false);
+      setUploading(false);
+    }
+  };
 
   return (
     <Dashboard>
@@ -35,19 +116,148 @@ const InstructorDashboard = () => {
             <p className="text-slate-500 mt-1">Manage your courses and track student progress</p>
           </div>
           <div className="flex gap-3">
-            <button className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold hover:bg-slate-50 transition shadow-sm">
-              <Calendar size={18} />
-              Schedule
+            <button 
+              onClick={() => setIsModalOpen(true)}
+              className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold hover:bg-slate-50 transition shadow-sm"
+            >
+              <Plus size={18} />
+              Send Notification
             </button>
             <Link 
               to="/courses"
               className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition shadow-lg shadow-indigo-200"
             >
-              <Plus size={18} />
+              <Calendar size={18} />
               Go to My Class
             </Link>
           </div>
         </div>
+
+        {/* Notification Modal */}
+        {isModalOpen && (
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
+              <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <div>
+                  <h3 className="text-2xl font-bold text-slate-900">Send Notification</h3>
+                  <p className="text-slate-500 text-sm mt-1">Announce materials or assignments to your students</p>
+                </div>
+                <button 
+                  onClick={() => setIsModalOpen(false)}
+                  className="p-2 hover:bg-white rounded-full transition-colors border border-transparent hover:border-slate-200"
+                >
+                  <X size={20} className="text-slate-400" />
+                </button>
+              </div>
+              
+              <form onSubmit={handleSendNotification} className="p-8 space-y-6">
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-slate-700 ml-1">Title</label>
+                  <input 
+                    type="text"
+                    required
+                    placeholder="e.g. New Material for Chapter 5"
+                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all"
+                    value={notification.title}
+                    onChange={(e) => setNotification({...notification, title: e.target.value})}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700 ml-1">Type</label>
+                    <select 
+                      className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all appearance-none cursor-pointer"
+                      value={notification.type}
+                      onChange={(e) => setNotification({...notification, type: e.target.value})}
+                    >
+                      <option value="ANNOUNCEMENT">Announcement</option>
+                      <option value="DOCUMENT">Document / Material</option>
+                      <option value="ASSIGNMENT">Assignment</option>
+                    </select>
+                  </div>
+                  {notification.type === 'ASSIGNMENT' && (
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-slate-700 ml-1">Deadline</label>
+                      <input 
+                        type="datetime-local"
+                        required
+                        className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all"
+                        value={notification.deadline}
+                        onChange={(e) => setNotification({...notification, deadline: e.target.value})}
+                      />
+                    </div>
+                  )}
+                  {notification.type === 'DOCUMENT' && (
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-slate-700 ml-1">Attachment (File or URL)</label>
+                      <div className="flex flex-col gap-3">
+                        <div className="relative group cursor-pointer">
+                          <input 
+                            type="file"
+                            className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                            onChange={(e) => setNotification({...notification, file: e.target.files[0], fileUrl: ''})}
+                          />
+                          <div className={`w-full px-5 py-4 bg-slate-50 border border-dashed rounded-2xl flex items-center justify-center gap-3 transition-all ${notification.file ? 'border-indigo-400 bg-indigo-50/30' : 'border-slate-200 group-hover:border-indigo-400'}`}>
+                            <Upload className={`w-5 h-5 ${notification.file ? 'text-indigo-600' : 'text-slate-400'}`} />
+                            <span className={`text-sm font-medium ${notification.file ? 'text-indigo-700' : 'text-slate-500'}`}>
+                              {notification.file ? notification.file.name : 'Click to upload file'}
+                            </span>
+                            {notification.file && (
+                              <button 
+                                type="button"
+                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setNotification({...notification, file: null}); }}
+                                className="ml-auto p-1 hover:bg-red-50 text-red-500 rounded-lg transition"
+                              >
+                                <X size={14} />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <div className="h-px bg-slate-100 flex-1" />
+                          <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">OR</span>
+                          <div className="h-px bg-slate-100 flex-1" />
+                        </div>
+                        <input 
+                          type="text"
+                          placeholder="Paste public file URL instead..."
+                          className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all text-sm"
+                          value={notification.fileUrl}
+                          onChange={(e) => setNotification({...notification, fileUrl: e.target.value, file: null})}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-slate-700 ml-1">Content</label>
+                  <textarea 
+                    rows="4"
+                    placeholder="Describe the notification..."
+                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all resize-none"
+                    value={notification.content}
+                    onChange={(e) => setNotification({...notification, content: e.target.value})}
+                  ></textarea>
+                </div>
+
+                <button 
+                  type="submit"
+                  disabled={loading || uploading}
+                  className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition shadow-lg shadow-indigo-200 disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {uploading ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Uploading...
+                    </>
+                  ) : loading ? 'Sending...' : 'Send Notification'}
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
 
         {/* Stats Overview */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
