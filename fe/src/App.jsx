@@ -35,7 +35,7 @@ function App() {
           <Route 
             path="/dashboard" 
             element={
-              <ProtectedRoute requireRole="instructor">
+              <ProtectedRoute allowRoles={['instructor', 'teacher', 'admin']}>
                 <InstructorDashboard />
               </ProtectedRoute>
             } 
@@ -43,7 +43,7 @@ function App() {
           <Route 
             path="/courses" 
             element={
-              <ProtectedRoute requireRole="instructor">
+              <ProtectedRoute allowRoles={['instructor', 'teacher', 'admin', 'student', 'user']}>
                 <CourseManagement />
               </ProtectedRoute>
             } 
@@ -51,7 +51,7 @@ function App() {
           <Route 
             path="/admin" 
             element={
-              <ProtectedRoute requireRole="admin">
+              <ProtectedRoute allowRoles={['admin']}>
                 <AdminDashboard />
               </ProtectedRoute>
             } 
@@ -59,7 +59,7 @@ function App() {
           <Route 
             path="/evaluation" 
             element={
-              <ProtectedRoute requireRole="instructor">
+              <ProtectedRoute allowRoles={['instructor', 'teacher', 'admin']}>
                 <EvaluationStats />
               </ProtectedRoute>
             } 
@@ -87,7 +87,7 @@ function App() {
           <Route 
             path="/student/dashboard" 
             element={
-              <ProtectedRoute requireRole="student">
+              <ProtectedRoute allowRoles={['student', 'user']}>
                 <StudentDashboard />
               </ProtectedRoute>
             } 
@@ -95,7 +95,7 @@ function App() {
           <Route 
             path="/student/courses" 
             element={
-              <ProtectedRoute requireRole="student">
+              <ProtectedRoute allowRoles={['student', 'user']}>
                 <StudentCourses />
               </ProtectedRoute>
             } 
@@ -103,7 +103,7 @@ function App() {
           <Route 
             path="/student/assignments" 
             element={
-              <ProtectedRoute requireRole="student">
+              <ProtectedRoute allowRoles={['student', 'user']}>
                 <StudentAssignments />
               </ProtectedRoute>
             } 
@@ -111,7 +111,7 @@ function App() {
           <Route 
             path="/student/progress" 
             element={
-              <ProtectedRoute requireRole="student">
+              <ProtectedRoute allowRoles={['student', 'user']}>
                 <StudentProgress />
               </ProtectedRoute>
             } 

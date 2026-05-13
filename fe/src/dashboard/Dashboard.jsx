@@ -45,7 +45,7 @@ const Dashboard = ({ children }) => {
   // Menu items for students
   const studentMenuItems = [
     { icon: <LayoutDashboard size={20} />, label: 'Dashboard', path: '/student/dashboard' },
-    { icon: <BookOpen size={20} />, label: 'My Class', path: '/student/courses' },
+    { icon: <BookOpen size={20} />, label: 'My Class', path: '/courses' },
     { icon: <Newspaper size={20} />, label: 'Class Feed', path: '/posts' },
     { icon: <MessageSquare size={20} />, label: 'Messages', path: '/chat' },
     { icon: <BarChart3 size={20} />, label: 'Progress', path: '/student/progress' },

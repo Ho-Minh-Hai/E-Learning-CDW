@@ -21,15 +21,28 @@ public class PostController {
     private final PostService postService;
 
     /**
-     * GET /api/posts — lấy tất cả bài đăng (có thể lọc theo type)
-     * Query param: type=ANNOUNCEMENT|DOCUMENT|ASSIGNMENT (tuỳ chọn)
+     * GET /api/posts — lấy bài đăng (có thể lọc theo type, classId hoặc userId)
+     * Query params: 
+     * - type=ANNOUNCEMENT|DOCUMENT|ASSIGNMENT (tuỳ chọn)
+     * - classId={uuid} (tuỳ chọn)
+     * - userId={uuid} (tuỳ chọn — lấy các bài đăng từ các lớp mà user này tham gia)
      */
     @GetMapping
     public ResponseEntity<List<PostResponseDTO>> getPosts(
-            @RequestParam(required = false) String type) {
-        List<Post> posts = (type != null && !type.isBlank())
-                ? postService.getPostsByType(type)
-                : postService.getAllPosts();
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) UUID classId,
+            @RequestParam(required = false) UUID userId) {
+        
+        List<Post> posts;
+        if (classId != null) {
+            posts = postService.getPostsByClass(classId);
+        } else if (userId != null) {
+            posts = postService.getPostsForUser(userId);
+        } else if (type != null && !type.isBlank()) {
+            posts = postService.getPostsByType(type);
+        } else {
+            posts = postService.getAllPosts();
+        }
 
         List<PostResponseDTO> dtos = posts.stream()
                 .map(PostResponseDTO::from)

@@ -16,6 +16,8 @@ public class PostResponseDTO {
     private String fileUrl;
     private String fileName;
     private OffsetDateTime deadline;
+    private UUID classId;
+    private String className;
     private AuthorDTO author;
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;
@@ -39,6 +41,11 @@ public class PostResponseDTO {
         dto.setDeadline(post.getDeadline());
         dto.setCreatedAt(post.getCreatedAt());
         dto.setUpdatedAt(post.getUpdatedAt());
+
+        if (post.getClassEntity() != null) {
+            dto.setClassId(post.getClassEntity().getId());
+            dto.setClassName(post.getClassEntity().getName());
+        }
 
         if (post.getAuthor() != null) {
             AuthorDTO author = new AuthorDTO();

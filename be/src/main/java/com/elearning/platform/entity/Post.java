@@ -61,6 +61,10 @@ public class Post {
     @JoinColumn(name = "author_id", nullable = false)
     private Profile author;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "class_id")
+    private ClassEntity classEntity;
+
     @Column(name = "is_deleted")
     @Builder.Default
     private boolean deleted = false;

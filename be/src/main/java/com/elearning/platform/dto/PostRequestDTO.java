@@ -14,4 +14,5 @@ public class PostRequestDTO {
     private String fileName;   // dùng cho DOCUMENT
     private OffsetDateTime deadline; // dùng cho ASSIGNMENT
     private UUID authorId;
+    private UUID classId;
 }

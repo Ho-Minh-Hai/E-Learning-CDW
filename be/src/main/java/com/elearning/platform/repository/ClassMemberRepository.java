@@ -8,6 +8,7 @@ import java.util.UUID;
 
 public interface ClassMemberRepository extends JpaRepository<ClassMemberEntity, UUID> {
     List<ClassMemberEntity> findByStudentId(UUID studentId);
+    List<ClassMemberEntity> findAllByStudentId(UUID studentId);
     boolean existsByClassEntityIdAndStudentId(UUID classId, UUID studentId);
     int countByClassEntityId(UUID classId);
 }

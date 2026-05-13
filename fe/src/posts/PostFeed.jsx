@@ -105,10 +105,12 @@ const CreatePostModal = ({ onClose, onCreated, authorId }) => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [deadline, setDeadline] = useState('');
+  const [classId, setClassId] = useState('');
+  const [userClasses, setUserClasses] = useState([]);
 
-  // File state — used for both DOCUMENT and ASSIGNMENT attachment
-  const [file, setFile] = useState(null);           // File object from input
-  const [fileUrl, setFileUrl] = useState('');        // Manual URL fallback
+  // File state
+  const [file, setFile] = useState(null);
+  const [fileUrl, setFileUrl] = useState('');
   const [useManualUrl, setUseManualUrl] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState('');
@@ -119,6 +121,22 @@ const CreatePostModal = ({ onClose, onCreated, authorId }) => {
   const fileInputRef = useRef(null);
   const cfg = POST_TYPES[postType];
   const Icon = cfg.icon;
+
+  useEffect(() => {
+    const fetchUserClasses = async () => {
+      try {
+        const res = await authFetch(`${API_URL}/classes/teacher/${authorId}`);
+        if (res.ok) {
+          const data = await res.json();
+          setUserClasses(data);
+          if (data.length > 0) setClassId(data[0].id);
+        }
+      } catch (err) {
+        console.error('fetchUserClasses error:', err);
+      }
+    };
+    fetchUserClasses();
+  }, [authorId]);
 
   const hasFileSection = postType === 'DOCUMENT' || postType === 'ASSIGNMENT';
 
@@ -146,6 +164,7 @@ const CreatePostModal = ({ onClose, onCreated, authorId }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!title.trim()) { setError('Please enter a title.'); return; }
+    if (!classId) { setError('Please select a class.'); return; }
     if (postType === 'ASSIGNMENT' && !deadline) { setError('Please select a deadline.'); return; }
     if (postType === 'DOCUMENT' && !file && !fileUrl.trim()) {
       setError('Please attach a file or provide a URL.'); return;
@@ -158,7 +177,6 @@ const CreatePostModal = ({ onClose, onCreated, authorId }) => {
     let resolvedFileName = '';
 
     try {
-      // Upload file if one was selected
       if (file && !useManualUrl) {
         setUploading(true);
         setUploadProgress('Uploading file...');
@@ -177,6 +195,7 @@ const CreatePostModal = ({ onClose, onCreated, authorId }) => {
         title: title.trim(),
         content: content.trim(),
         authorId,
+        classId,
         fileUrl: resolvedFileUrl || null,
         fileName: resolvedFileName || null,
         deadline: postType === 'ASSIGNMENT' && deadline
@@ -221,6 +240,22 @@ const CreatePostModal = ({ onClose, onCreated, authorId }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto">
+          {/* Class selector */}
+          <div>
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Post to Class *</label>
+            <select
+              value={classId}
+              onChange={e => setClassId(e.target.value)}
+              required
+              className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 transition bg-white"
+            >
+              <option value="" disabled>Select a class</option>
+              {userClasses.map(cls => (
+                <option key={cls.id} value={cls.id}>{cls.name}</option>
+              ))}
+            </select>
+          </div>
+
           {/* Post type selector */}
           <div>
             <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Post Type</label>
@@ -270,19 +305,18 @@ const CreatePostModal = ({ onClose, onCreated, authorId }) => {
             />
           </div>
 
-          {/* File attachment — DOCUMENT or ASSIGNMENT */}
+          {/* File attachment */}
           {hasFileSection && (
             <div className={`p-4 rounded-xl border space-y-3 ${
               postType === 'DOCUMENT' ? 'bg-emerald-50 border-emerald-200' : 'bg-orange-50 border-orange-200'
             }`}>
-              <div className={`flex items-center justify-between`}>
+              <div className="flex items-center justify-between">
                 <div className={`flex items-center gap-2 text-xs font-bold uppercase tracking-wider ${
                   postType === 'DOCUMENT' ? 'text-emerald-700' : 'text-orange-700'
                 }`}>
                   <Upload size={14} />
                   {postType === 'DOCUMENT' ? 'Attach File' : 'Attach Reference File (optional)'}
                 </div>
-                {/* Toggle: upload vs URL */}
                 <button
                   type="button"
                   onClick={() => { setUseManualUrl(v => !v); setFile(null); setFileUrl(''); }}
@@ -293,7 +327,6 @@ const CreatePostModal = ({ onClose, onCreated, authorId }) => {
               </div>
 
               {!useManualUrl ? (
-                /* Drag & drop zone */
                 <div
                   onDrop={handleDrop}
                   onDragOver={e => e.preventDefault()}
@@ -339,7 +372,6 @@ const CreatePostModal = ({ onClose, onCreated, authorId }) => {
                   )}
                 </div>
               ) : (
-                /* Manual URL input */
                 <input
                   type="url"
                   value={fileUrl}
@@ -353,7 +385,6 @@ const CreatePostModal = ({ onClose, onCreated, authorId }) => {
                 />
               )}
 
-              {/* Upload progress */}
               {uploading && (
                 <div className="flex items-center gap-2 text-xs text-slate-500">
                   <div className="w-3 h-3 border-2 border-indigo-300 border-t-indigo-600 rounded-full animate-spin" />
@@ -363,7 +394,7 @@ const CreatePostModal = ({ onClose, onCreated, authorId }) => {
             </div>
           )}
 
-          {/* Deadline — ASSIGNMENT only */}
+          {/* Deadline */}
           {postType === 'ASSIGNMENT' && (
             <div className="p-4 bg-orange-50 rounded-xl border border-orange-200">
               <div className="flex items-center gap-2 text-orange-700 text-xs font-bold uppercase tracking-wider mb-3">
@@ -422,18 +453,23 @@ const PostCard = ({ post, currentUserId, onDelete }) => {
 
   return (
     <div className={`bg-white rounded-2xl border ${cfg.border} shadow-sm overflow-hidden`}>
-      {/* Top stripe */}
       <div className={`h-1 ${cfg.dot}`} />
-
       <div className="p-5">
-        {/* Header */}
         <div className="flex items-start justify-between gap-3 mb-3">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${cfg.badge}`}>
-              <Icon size={12} />
-              {cfg.label}
-            </span>
-            <h3 className="text-sm font-bold text-slate-900">{post.title}</h3>
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${cfg.badge}`}>
+                <Icon size={12} />
+                {cfg.label}
+              </span>
+              <h3 className="text-sm font-bold text-slate-900">{post.title}</h3>
+            </div>
+            {post.className && (
+              <span className="text-[11px] font-bold text-slate-400 flex items-center gap-1">
+                <BookOpen size={11} />
+                {post.className}
+              </span>
+            )}
           </div>
           {isOwner && (
             <button
@@ -446,12 +482,10 @@ const PostCard = ({ post, currentUserId, onDelete }) => {
           )}
         </div>
 
-        {/* Content */}
         {post.content && (
           <p className="text-sm text-slate-600 leading-relaxed mb-3">{post.content}</p>
         )}
 
-        {/* Attached file — shown for DOCUMENT and ASSIGNMENT */}
         {post.fileUrl && (
           <a
             href={post.fileUrl}
@@ -468,7 +502,6 @@ const PostCard = ({ post, currentUserId, onDelete }) => {
           </a>
         )}
 
-        {/* Deadline */}
         {post.postType === 'ASSIGNMENT' && post.deadline && (
           <div className="inline-flex items-center gap-2 px-3 py-2 bg-orange-50 border border-orange-200 rounded-xl text-xs font-semibold text-orange-700 mb-3">
             <Calendar size={14} />
@@ -476,7 +509,6 @@ const PostCard = ({ post, currentUserId, onDelete }) => {
           </div>
         )}
 
-        {/* Footer */}
         <div className="flex items-center gap-2 pt-3 border-t border-slate-100">
           <div className="w-6 h-6 rounded-full bg-linear-to-br from-indigo-400 to-violet-500 flex items-center justify-center text-white text-[10px] font-bold shrink-0">
             {post.author?.fullName?.charAt(0)?.toUpperCase() || '?'}
@@ -499,15 +531,16 @@ const PostFeed = () => {
   const [loading, setLoading] = useState(true);
 
   const userRole = user?.user_metadata?.role;
-  const canPost = userRole === 'instructor' || userRole === 'admin';
-  const Layout = userRole === 'student' ? StudentLayout : Dashboard;
+  const canPost = userRole === 'instructor' || userRole === 'teacher' || userRole === 'admin';
+  const Layout = userRole === 'student' || userRole === 'user' ? StudentLayout : Dashboard;
 
-  // ── Fetch posts ─────────────────────────────────────────────────────────────
   const fetchPosts = useCallback(async () => {
+    if (!user?.id) return;
     try {
-      const url = filter === 'ALL'
-        ? `${API_URL}/posts`
-        : `${API_URL}/posts?type=${filter}`;
+      let url = `${API_URL}/posts?userId=${user.id}`;
+      if (filter !== 'ALL') {
+        url += `&type=${filter}`;
+      }
       const res = await authFetch(url);
       if (!res.ok) return;
       const data = await res.json();
@@ -517,11 +550,10 @@ const PostFeed = () => {
     } finally {
       setLoading(false);
     }
-  }, [filter]);
+  }, [filter, user?.id]);
 
   useEffect(() => { fetchPosts(); }, [fetchPosts]);
 
-  // ── Realtime subscription ───────────────────────────────────────────────────
   useEffect(() => {
     const channel = supabase
       .channel('posts-feed')
@@ -534,7 +566,6 @@ const PostFeed = () => {
     return () => supabase.removeChannel(channel);
   }, [fetchPosts]);
 
-  // ── Delete post ─────────────────────────────────────────────────────────────
   const handleDelete = async (postId) => {
     if (!window.confirm('Are you sure you want to delete this post?')) return;
     try {
@@ -559,11 +590,10 @@ const PostFeed = () => {
   return (
     <Layout>
       <div className="flex-1 overflow-y-auto p-8">
-        {/* Page header */}
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Class Feed</h1>
-            <p className="text-slate-500 text-sm mt-0.5">Announcements, documents and assignments from instructors</p>
+            <p className="text-slate-500 text-sm mt-0.5">Posts and materials from your classes</p>
           </div>
           {canPost && (
             <button
@@ -576,7 +606,6 @@ const PostFeed = () => {
           )}
         </div>
 
-        {/* Filter tabs */}
         <div className="flex gap-2 mb-6 flex-wrap">
           {filterTabs.map(({ key, label, icon: TabIcon }) => (
             <button
@@ -594,7 +623,6 @@ const PostFeed = () => {
           ))}
         </div>
 
-        {/* Posts list */}
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
@@ -604,13 +632,13 @@ const PostFeed = () => {
             <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mb-4">
               <Bell size={28} className="text-slate-300" />
             </div>
-            <p className="text-slate-500 font-medium">No posts yet</p>
+            <p className="text-slate-500 font-medium">No posts in your classes yet</p>
             {canPost && (
               <button
                 onClick={() => setShowModal(true)}
                 className="mt-4 text-sm text-indigo-600 font-semibold hover:underline"
               >
-                Create the first post
+                Create a post for your class
               </button>
             )}
           </div>
@@ -628,7 +656,6 @@ const PostFeed = () => {
         )}
       </div>
 
-      {/* Modal */}
       {showModal && (
         <CreatePostModal
           authorId={user?.id}

@@ -18,6 +18,8 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final ProfileRepository profileRepository;
+    private final com.elearning.platform.repository.ClassRepository classRepository;
+    private final com.elearning.platform.repository.ClassMemberRepository classMemberRepository;
 
     public List<Post> getAllPosts() {
         return postRepository.findAllActive();
@@ -31,10 +33,43 @@ public class PostService {
         return postRepository.findAllActiveByAuthor(authorId);
     }
 
+    public List<Post> getPostsByClass(UUID classId) {
+        return postRepository.findAllActiveByClass(classId);
+    }
+
+    /**
+     * Lấy tất cả bài đăng từ các lớp mà người dùng tham gia
+     */
+    public List<Post> getPostsForUser(UUID userId) {
+        // Lấy danh sách classId mà user tham gia
+        List<UUID> classIds = classMemberRepository.findAllByStudentId(userId)
+                .stream()
+                .map(cm -> cm.getClassEntity().getId())
+                .collect(java.util.stream.Collectors.toList());
+        
+        // Nếu là giáo viên, lấy thêm các lớp họ dạy
+        classRepository.findByTeacherId(userId).forEach(c -> {
+            if (!classIds.contains(c.getId())) classIds.add(c.getId());
+        });
+
+        if (classIds.isEmpty()) {
+            // Có thể trả về bài đăng chung không có class_id
+            return postRepository.findAllActiveWithoutClass();
+        }
+
+        return postRepository.findAllActiveByClasses(classIds);
+    }
+
     @Transactional
     public Post createPost(PostRequestDTO dto) {
         Profile author = profileRepository.findById(dto.getAuthorId())
                 .orElseThrow(() -> new RuntimeException("Author not found: " + dto.getAuthorId()));
+
+        com.elearning.platform.entity.ClassEntity classEntity = null;
+        if (dto.getClassId() != null) {
+            classEntity = classRepository.findById(dto.getClassId())
+                    .orElseThrow(() -> new RuntimeException("Class not found: " + dto.getClassId()));
+        }
 
         String postType = dto.getPostType().toUpperCase();
         if (!postType.equals("ANNOUNCEMENT") && !postType.equals("DOCUMENT") && !postType.equals("ASSIGNMENT")) {
@@ -49,6 +84,7 @@ public class PostService {
                 .fileName(dto.getFileName())
                 .deadline(dto.getDeadline())
                 .author(author)
+                .classEntity(classEntity)
                 .build();
 
         return postRepository.save(post);

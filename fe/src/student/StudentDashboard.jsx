@@ -110,7 +110,7 @@ const StudentDashboard = () => {
           </div>
           <div className="flex gap-3">
             <Link
-              to="/student/courses"
+              to="/courses"
               className="flex items-center gap-2 px-5 py-2.5 bg-indigo-50 text-indigo-600 rounded-xl font-bold hover:bg-indigo-100 transition shadow-sm w-fit"
             >
               <Plus size={18} />
@@ -327,7 +327,7 @@ const StudentDashboard = () => {
             <div className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm">
               <h3 className="font-bold text-slate-900 mb-4">Quick Links</h3>
               <div className="space-y-2">
-                <QuickLink to="/student/courses"     icon={<BookOpen size={16} />}     label="My Courses" />
+                <QuickLink to="/courses"             icon={<BookOpen size={16} />}     label="My Courses" />
                 <QuickLink to="/posts"               icon={<Bell size={16} />}          label="Class Feed" />
                 <QuickLink to="/student/assignments" icon={<ClipboardList size={16} />} label="Assignments" />
                 <QuickLink to="/student/progress"    icon={<TrendingUp size={16} />}    label="My Progress" />
