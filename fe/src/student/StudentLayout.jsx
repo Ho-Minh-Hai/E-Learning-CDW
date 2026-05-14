@@ -197,7 +197,6 @@ const StudentLayout = ({ children }) => {
   const menuItems = [
     { icon: <LayoutDashboard size={20} />, label: 'Dashboard',   path: '/student/dashboard' },
     { icon: <BookOpen size={20} />,        label: 'My Class',    path: '/student/courses' },
-    { icon: <Newspaper size={20} />,       label: 'Class Feed',  path: '/posts' },
     { icon: <Trophy size={20} />,          label: 'Assignments', path: '/student/assignments' },
     { icon: <BarChart3 size={20} />,       label: 'Progress',    path: '/student/progress' },
     { icon: <MessageSquare size={20} />,   label: 'Messages',    path: '/chat' },
@@ -281,7 +280,6 @@ const StudentLayout = ({ children }) => {
         <nav className="flex-1 px-4 py-6 space-y-2">
           {menuItems.map((item) => {
             const isActive = location.pathname === item.path;
-            const showBadge = item.path === '/posts' && unreadCount > 0;
             return (
               <Link
                 key={item.path}
@@ -294,18 +292,10 @@ const StudentLayout = ({ children }) => {
               >
                 <span className="shrink-0 relative">
                   {item.icon}
-                  {showBadge && (
-                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full border border-white" />
-                  )}
                 </span>
                 {isSidebarOpen && (
                   <span className="flex-1 flex items-center justify-between overflow-hidden whitespace-nowrap">
                     {item.label}
-                    {showBadge && (
-                      <span className="ml-2 px-1.5 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full">
-                        {unreadCount > 9 ? '9+' : unreadCount}
-                      </span>
-                    )}
                   </span>
                 )}
               </Link>
