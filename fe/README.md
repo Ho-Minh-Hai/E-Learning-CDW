@@ -1,75 +1,70 @@
-# EduFlow Frontend
+# Getting Started with Create React App
 
-Modern e-learning platform built with React, Vite, and Tailwind CSS.
+This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-## 🚀 Quick Start
+## Available Scripts
 
-### 1. Install Dependencies
-```bash
-npm install
-```
+In the project directory, you can run:
 
-### 2. Configure Environment
-Copy `.env.example` to `.env` and add your Supabase credentials:
-```env
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key-here
-```
+### `npm start`
 
-### 3. Run Development Server
-```bash
-npm run dev
-```
+Runs the app in the development mode.\
+Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
-App will be available at: http://localhost:5173
+The page will reload when you make changes.\
+You may also see any lint errors in the console.
 
-## 📦 Tech Stack
+### `npm test`
 
-- **React 19** - UI framework
-- **Vite 8** - Build tool
-- **Tailwind CSS 4** - Styling
-- **React Router 7** - Routing
-- **Supabase** - Backend & Auth
-- **Lucide React** - Icons
+Launches the test runner in the interactive watch mode.\
+See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
 
-## 🔧 Available Scripts
+### `npm run build`
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
+Builds the app for production to the `build` folder.\
+It correctly bundles React in production mode and optimizes the build for the best performance.
 
-## 📁 Project Structure
+The build is minified and the filenames include the hashes.\
+Your app is ready to be deployed!
 
-```
-fe/
-├── src/
-│   ├── admin/          # Admin dashboard
-│   ├── auth/           # Login & Register
-│   ├── components/     # Shared components
-│   ├── context/        # React context (Auth)
-│   ├── courses/        # Course management
-│   ├── dashboard/      # Main dashboard
-│   ├── evaluation/     # Performance stats
-│   ├── hooks/          # Custom hooks
-│   ├── pages/          # Landing page
-│   ├── realtime/       # Chat features
-│   └── supabaseClient.js
-├── public/             # Static assets
-└── .env               # Environment variables (not in git)
-```
+See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
 
-## ⚠️ Important Notes
+### `npm run eject`
 
-- Make sure Supabase is properly configured
-- `.env` file is gitignored for security
-- Use `.env.example` as a template
+**Note: this is a one-way operation. Once you `eject`, you can't go back!**
 
-## 🐛 Troubleshooting
+If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
 
-If the app doesn't load:
-1. Check `.env` file has correct Supabase credentials
-2. Verify `node_modules` are installed
-3. Clear browser cache and restart dev server
+Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
 
-For detailed setup instructions, see [SETUP.md](./SETUP.md)
+You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+
+## Learn More
+
+You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+
+To learn React, check out the [React documentation](https://reactjs.org/).
+
+### Code Splitting
+
+This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+
+### Analyzing the Bundle Size
+
+This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+
+### Making a Progressive Web App
+
+This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+
+### Advanced Configuration
+
+This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+
+### Deployment
+
+This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+
+### `npm run build` fails to minify
+
+This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
