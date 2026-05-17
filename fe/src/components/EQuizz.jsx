@@ -813,33 +813,7 @@ const EQuizz = ({ session, userRole, classes, isLoadingClasses }) => {
                                         <FontAwesomeIcon icon={faMagic} className="magic-icon" />
                                         <span>Tạo câu hỏi bằng AI</span>
                                     </div>
-                                    <div className="ai-controls-row">
-                                        <label htmlFor="aiFileInput" className="ai-file-input-wrapper">
-                                            <input 
-                                                id="aiFileInput"
-                                                type="file"
-                                                className="ai-file-input"
-                                                accept=".txt,.pdf,.doc,.docx"
-                                                onChange={handleFileUpload}
-                                                disabled={isGenerating}
-                                            />
-                                            <span className="ai-file-label">
-                                                {aiFile ? `📄 ${aiFile.name}` : "Chọn file (TXT, PDF, Word)"}
-                                            </span>
-                                        </label>
-                                        <div className="ai-number-input-wrapper">
-                                            <input 
-                                                type="number"
-                                                className="ai-number-input"
-                                                min="1"
-                                                max="50"
-                                                value={numberOfQuestions}
-                                                onChange={(e) => setNumberOfQuestions(parseInt(e.target.value) || 1)}
-                                                placeholder="Số câu hỏi"
-                                                disabled={isGenerating}
-                                            />
-                                            <span>câu</span>
-                                        </div>
+                                   
                                         <button 
                                             className="ai-generate-btn"
                                             onClick={handleGenerateQuestionsAI}
@@ -849,7 +823,7 @@ const EQuizz = ({ session, userRole, classes, isLoadingClasses }) => {
                                             <span>{isGenerating ? "Đang tạo..." : "Tạo câu hỏi"}</span>
                                         </button>
                                     </div>
-                                </div>
+    
                             )}
 
                             {/* Question List */}
