@@ -1,7 +1,9 @@
 package com.example.demo.service;
 
 import com.example.demo.model.UserStreak;
+import com.example.demo.model.User;
 import com.example.demo.repository.UserStreakRepository;
+import com.example.demo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -14,8 +16,14 @@ import java.util.UUID;
 public class UserStreakService {
 
     private final UserStreakRepository userStreakRepository;
+    private final UserRepository userRepository;
 
     public UserStreak updateStreak(UUID userId) {
+        // Kiểm tra User có tồn tại không
+        if (!userRepository.existsById(userId)) {
+            throw new RuntimeException("User không tồn tại với ID: " + userId);
+        }
+
         Optional<UserStreak> streakOpt = userStreakRepository.findById(userId);
         LocalDate today = LocalDate.now();
 
@@ -54,6 +62,11 @@ public class UserStreakService {
     }
 
     public UserStreak getStreak(UUID userId) {
+        // Kiểm tra User có tồn tại không
+        if (!userRepository.existsById(userId)) {
+            throw new RuntimeException("User không tồn tại với ID: " + userId);
+        }
+
         return userStreakRepository.findById(userId).orElseGet(() -> {
              UserStreak newStreak = UserStreak.builder().userId(userId).streak(0).lastActiveDate(null).build();
              return userStreakRepository.save(newStreak);

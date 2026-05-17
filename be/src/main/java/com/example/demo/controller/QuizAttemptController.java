@@ -5,6 +5,7 @@ import com.example.demo.model.QuizAttempt;
 import com.example.demo.model.StudentAnswer;
 import com.example.demo.repository.QuizAttemptRepository;
 import com.example.demo.repository.StudentAnswerRepository;
+import com.example.demo.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,9 +26,17 @@ public class QuizAttemptController {
     @Autowired
     private StudentAnswerRepository answerRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
     @PostMapping("/submit")
     public ResponseEntity<?> submitQuiz(@RequestBody QuizSubmissionDTO submission) {
         try {
+            // Kiểm tra User có tồn tại không
+            if (!userRepository.existsById(submission.getUserId())) {
+                return ResponseEntity.badRequest().body("User không tồn tại với ID: " + submission.getUserId());
+            }
+
             QuizAttempt attempt = new QuizAttempt();
             attempt.setQuizId(submission.getQuizId());
             attempt.setUserId(submission.getUserId());
