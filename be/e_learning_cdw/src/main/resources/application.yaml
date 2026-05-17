@@ -1,5 +1,0 @@
-spring:
-  application:
-    name: e_learning_cdw
-server:
-  port: 8081
