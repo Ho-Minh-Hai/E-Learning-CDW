@@ -1,129 +1,130 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { BookOpen, Mail, Lock, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
-import { useAuth } from '../hooks/useAuth';
-import AuthBackground from './AuthBackground';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTimes } from '@fortawesome/free-solid-svg-icons';
+import { supabase } from '../supabaseClient';
+import './Login.css';
 
-const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const { signIn } = useAuth();
-  const navigate = useNavigate();
+const Login = ({ onClose }) => {
+    const [isLogin, setIsLogin] = useState(true);
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
+    const handleAuthentication = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setError('');
 
-    try {
-      const { data, error } = await signIn(email, password);
-      if (error) throw error;
-      
-      // Redirect based on user role
-      const userRole = data?.user?.user_metadata?.role;
-      if (userRole === 'student') {
-        navigate('/student/dashboard');
-      } else if (userRole === 'instructor' || userRole === 'admin') {
-        navigate('/dashboard');
-      } else {
-        // Default fallback
-        navigate('/dashboard');
-      }
-    } catch (err) {
-      setError(err.message || 'Failed to sign in. Please check your credentials.');
-    } finally {
-      setLoading(false);
-    }
-  };
+        try {
+            if (isLogin) {
+                const { error } = await supabase.auth.signInWithPassword({
+                    email,
+                    password,
+                });
+                if (error) throw error;
+            } else {
+                const { error } = await supabase.auth.signUp({
+                    email,
+                    password,
+                    options: {
+                        emailRedirectTo: window.location.origin,
+                    }
+                });
+                if (error) throw error;
+            }
+            onClose();
+        } catch (error) {
+            setError(error.message || "Có lỗi xảy ra");
+        } finally {
+            setLoading(false);
+        }
+    };
 
-  return (
-    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
-      <AuthBackground />
-      
-      <div className="max-w-md w-full space-y-8 bg-white/90 backdrop-blur-xl p-10 rounded-[2.5rem] shadow-2xl shadow-slate-200/50 border border-slate-100 animate-in fade-in zoom-in duration-500">
-        <div className="text-center">
-          <Link to="/" className="inline-flex items-center gap-2 mb-8">
-            <div className="bg-indigo-600 p-2 rounded-lg">
-              <BookOpen className="text-white w-6 h-6" />
+    const handleGoogleLogin = async () => {
+        try {
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    queryParams: {
+                        access_type: 'offline',
+                        prompt: 'consent',
+                    },
+                    redirectTo: window.location.origin
+                }
+            });
+            if (error) throw error;
+        } catch (error) {
+            console.error("Error logging in with Google:", error.message);
+            alert("Đăng nhập thất bại: " + error.message);
+        }
+    };
+
+    return (
+        <div className="login-overlay" onClick={onClose}>
+            <div className="login-container" onClick={(e) => e.stopPropagation()}>
+                <button className="login-close" onClick={onClose}>
+                    <FontAwesomeIcon icon={faTimes} />
+                </button>
+                <div className="login-header">
+                    <h2>Welcome back</h2>
+                    <p>Login to continue your learning journey</p>
+                </div>
+                <div className="login-content">
+                    <form onSubmit={handleAuthentication}>
+                        <input
+                            type="email"
+                            placeholder="Email address"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                            disabled={loading}
+                        />
+                        <input
+                            type="password"
+                            placeholder="Password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                            disabled={loading}
+                        />
+                        {error && <p className="error-message">{error}</p>}
+                        <button type="submit" disabled={loading} className="submit-btn">
+                            {loading ? 'Processing...' : (isLogin ? 'Sign In' : 'Sign Up')}
+                        </button>
+                    </form>
+                    <div className="form-toggle">
+                        <p>
+                            {isLogin ? "Don't have an account? " : "Already have an account? "}
+                            <button type="button" onClick={() => setIsLogin(!isLogin)}>
+                                {isLogin ? 'Sign Up' : 'Sign In'}
+                            </button>
+                        </p>
+                    </div>
+                </div>
+                
+                <div className="login-divider">
+                    <span>Or</span>
+                </div>
+                
+                <div className="login-other-options">
+                    <button className="google-login-btn" onClick={handleGoogleLogin}>
+                        <svg className="google-icon" viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+                            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.66l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 12-4.53z" fill="#EA4335"/>
+                        </svg>
+                        <span>Continue with Google</span>
+                    </button>
+                </div>
+                
+                <div className="login-footer">
+                    <p>By continuing, you agree to our <span>Terms of Service</span> and <span>Privacy Policy</span></p>
+                </div>
             </div>
-            <span className="text-2xl font-bold text-slate-900">EduFlow</span>
-          </Link>
-          <h2 className="text-4xl font-extrabold text-slate-900 tracking-tight">Welcome Back</h2>
-          <p className="mt-3 text-slate-500 text-base">Sign in to your account to continue</p>
         </div>
-
-        {error && (
-          <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-2xl flex items-center gap-3 text-sm animate-in fade-in slide-in-from-top-2 duration-300">
-            <AlertCircle className="w-5 h-5 flex-shrink-0" />
-            <p>{error}</p>
-          </div>
-        )}
-
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="space-y-5">
-            <div>
-              <label className="text-sm font-bold text-slate-700 block mb-2">Email Address</label>
-              <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-                <input 
-                  type="email" 
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@example.com" 
-                  required
-                  className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all duration-300 placeholder:text-slate-400"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="text-sm font-bold text-slate-700 block mb-2">Password</label>
-              <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-                <input 
-                  type="password" 
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••" 
-                  required
-                  className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all duration-300 placeholder:text-slate-400"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between text-sm">
-            <div className="flex items-center gap-2">
-              <input type="checkbox" className="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500" />
-              <span className="text-slate-600">Remember me</span>
-            </div>
-            <a href="#" className="font-semibold text-indigo-600 hover:text-indigo-500">Forgot password?</a>
-          </div>
-
-          <button 
-            type="submit" 
-            disabled={loading}
-            className="w-full flex items-center justify-center gap-2 py-4 bg-indigo-600 text-white rounded-2xl font-bold text-base hover:bg-indigo-700 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 shadow-lg shadow-indigo-200 group disabled:opacity-70 disabled:cursor-not-allowed"
-          >
-            {loading ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              <>
-                Sign In
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </>
-            )}
-          </button>
-        </form>
-
-        <p className="text-center text-sm text-slate-500 mt-6">
-          Don't have an account? {' '}
-          <Link to="/register" className="font-bold text-indigo-600 hover:text-indigo-500 transition-colors">Create one for free</Link>
-        </p>
-      </div>
-    </div>
-  );
+    );
 };
 
 export default Login;
