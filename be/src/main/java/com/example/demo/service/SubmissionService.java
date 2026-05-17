@@ -99,6 +99,16 @@ public class SubmissionService {
         }
     }
 
+    @Transactional
+    public void deleteSubmission(UUID submissionId) {
+        if (!submissionRepository.existsById(submissionId)) {
+            return;
+        }
+
+        submissionFileRepository.deleteBySubmissionId(submissionId);
+        submissionRepository.deleteById(submissionId);
+    }
+
     private String calculateStatus(UUID postId, LocalDateTime submittedAt) {
         Optional<AssignmentDeadline> deadline = assignmentDeadlineRepository.findByPostId(postId);
         if (deadline.isPresent()) {

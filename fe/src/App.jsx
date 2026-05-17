@@ -93,8 +93,12 @@ function App() {
         setUserRole(data.role); 
         setUserData(data); // Lưu thông tin trả về từ supabase
         fetchClasses(user.id, data.role);
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.error("Backend login failed:", errorData.message || response.statusText);
       }
     } catch (error) {
+      console.error("Error syncing Supabase user with backend:", error);
     }
   };
 
@@ -107,6 +111,9 @@ function App() {
       if (response.ok) {
         const data = await response.json();
         setClasses(data);
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.error("Error fetching classes:", errorData.message || response.statusText);
       }
     } catch (err) {
       console.error("Error fetching classes:", err);

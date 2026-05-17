@@ -33,7 +33,10 @@ public class ChatService {
     private static final long RECALL_LIMIT_HOURS = 3;
 
     public List<Conversation> getConversationsForUser(UUID userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) {
+            return List.of();
+        }
         return conversationRepository.findByUser1OrUser2OrderByCreatedAtDesc(user, user);
     }
 
@@ -115,11 +118,17 @@ public class ChatService {
     }
     
     public long countUnreadMessages(UUID userId) {
+        if (!userRepository.existsById(userId)) {
+            return 0;
+        }
         return messageRepository.countUnreadMessagesByUserId(userId);
     }
 
     @org.springframework.transaction.annotation.Transactional
     public void markAsRead(UUID conversationId, UUID userId) {
+        if (!userRepository.existsById(userId)) {
+            return;
+        }
         messageRepository.markAsRead(conversationId, userId, LocalDateTime.now());
     }
 }
