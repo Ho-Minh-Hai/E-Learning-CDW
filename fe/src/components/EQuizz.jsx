@@ -467,11 +467,13 @@ const EQuizz = ({ session, userRole, classes, isLoadingClasses }) => {
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
+                const errorData = await response.json().catch(() => ({}));
                 throw new Error(errorData.message || "Lỗi khi lưu bài làm");
             }
 
-            alert(`Bạn đã hoàn thành bài thi! Điểm của bạn: ${scoreValue.toFixed(2)}/10`);
+            const savedAttempt = await response.json();
+            const savedScore = Number(savedAttempt.score ?? scoreValue);
+            alert(`Bạn đã hoàn thành bài thi! Điểm của bạn: ${savedScore.toFixed(2)}/10`);
             await fetchAttempts();
             stopQuiz();
         } catch (err) {

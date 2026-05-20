@@ -26,11 +26,15 @@ public class ChatController {
     }
 
     @PostMapping("/conversations")
-    public ResponseEntity<Conversation> getOrCreateConversation(@RequestBody Map<String, UUID> payload) {
-        return ResponseEntity.ok(chatService.getOrCreateConversation(
-                payload.get("user1Id"),
-                payload.get("user2Id")
-        ));
+    public ResponseEntity<?> getOrCreateConversation(@RequestBody Map<String, UUID> payload) {
+        try {
+            return ResponseEntity.ok(chatService.getOrCreateConversation(
+                    payload.get("user1Id"),
+                    payload.get("user2Id")
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
     }
 
     @GetMapping("/messages/{conversationId}")
@@ -39,12 +43,16 @@ public class ChatController {
     }
 
     @PostMapping("/messages")
-    public ResponseEntity<Message> sendMessage(@RequestBody Map<String, Object> payload) {
-        return ResponseEntity.ok(chatService.saveMessage(
-                UUID.fromString(payload.get("conversationId").toString()),
-                UUID.fromString(payload.get("senderId").toString()),
-                payload.get("content").toString()
-        ));
+    public ResponseEntity<?> sendMessage(@RequestBody Map<String, Object> payload) {
+        try {
+            return ResponseEntity.ok(chatService.saveMessage(
+                    UUID.fromString(payload.get("conversationId").toString()),
+                    UUID.fromString(payload.get("senderId").toString()),
+                    payload.get("content").toString()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
     }
 
     @PutMapping("/messages/{messageId}")

@@ -31,14 +31,18 @@ public class ClassController {
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<ClassDTO>> getClasses(@PathVariable UUID userId, @RequestParam(required = false) String role) {
-        List<ClassDTO> classes;
-        if ("1".equals(role)) {
-            classes = classService.getClassesByTeacher(userId);
-        } else {
-            classes = classService.getClassesByStudent(userId);
+    public ResponseEntity<?> getClasses(@PathVariable UUID userId, @RequestParam(required = false) String role) {
+        try {
+            List<ClassDTO> classes;
+            if ("1".equals(role)) {
+                classes = classService.getClassesByTeacher(userId);
+            } else {
+                classes = classService.getClassesByStudent(userId);
+            }
+            return ResponseEntity.ok(classes);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
-        return ResponseEntity.ok(classes);
     }
 
     @PostMapping("/join")

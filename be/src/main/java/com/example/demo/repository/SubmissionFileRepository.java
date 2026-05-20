@@ -7,4 +7,5 @@ import java.util.UUID;
 
 public interface SubmissionFileRepository extends JpaRepository<SubmissionFile, UUID> {
     List<SubmissionFile> findBySubmissionId(UUID submissionId);
+    void deleteBySubmissionId(UUID submissionId);
 }

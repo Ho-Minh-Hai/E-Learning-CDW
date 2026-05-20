@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Data
@@ -40,8 +41,12 @@ public class SubmissionController {
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<SubmissionDTO>> getByUser(@PathVariable UUID userId) {
-        return ResponseEntity.ok(submissionService.getSubmissionsByStudent(userId));
+    public ResponseEntity<?> getByUser(@PathVariable UUID userId) {
+        try {
+            return ResponseEntity.ok(submissionService.getSubmissionsByStudent(userId));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("message", e.getMessage()));
+        }
     }
 
     @PutMapping("/{id}/grade")
@@ -57,6 +62,12 @@ public class SubmissionController {
     @DeleteMapping("/files/{fileId}")
     public ResponseEntity<Void> deleteFile(@PathVariable UUID fileId) {
         submissionService.deleteFile(fileId);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteSubmission(@PathVariable UUID id) {
+        submissionService.deleteSubmission(id);
         return ResponseEntity.ok().build();
     }
 }
