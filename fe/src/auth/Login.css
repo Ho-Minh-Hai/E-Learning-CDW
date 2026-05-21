@@ -266,3 +266,298 @@
     from { opacity: 0; transform: translateY(24px) scale(0.96); }
     to { opacity: 1; transform: translateY(0) scale(1); }
 }
+
+/* ============================================
+   RESPONSIVE DESIGN - MEDIA QUERIES
+   ============================================ */
+
+/* Desktop (1024px+) */
+@media (min-width: 1024px) {
+  .login-container {
+    width: 420px;
+    padding: 48px 44px;
+  }
+
+  .login-header h2 {
+    font-size: 28px;
+  }
+
+  .login-content input {
+    padding: 12px 16px;
+  }
+}
+
+/* Tablet (768px - 1023px) */
+@media (max-width: 1023px) and (min-width: 768px) {
+  .login-overlay {
+    padding: 20px;
+  }
+
+  .login-container {
+    width: 100%;
+    max-width: 400px;
+    padding: 40px 36px;
+  }
+
+  .login-header h2 {
+    font-size: 26px;
+  }
+
+  .login-header p {
+    font-size: 13px;
+  }
+
+  .login-content input {
+    padding: 11px 14px;
+    font-size: 14px;
+  }
+
+  .submit-btn {
+    padding: 11px 18px;
+    font-size: 14px;
+  }
+
+  .google-login-btn {
+    padding: 12px 18px;
+    font-size: 14px;
+  }
+
+  .login-close {
+    top: 16px;
+    right: 16px;
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+  }
+
+  .form-toggle p {
+    font-size: 13px;
+  }
+
+  .form-toggle button {
+    font-size: 13px;
+  }
+}
+
+/* Mobile - Large (480px - 767px) */
+@media (max-width: 767px) and (min-width: 480px) {
+  .login-overlay {
+    padding: 16px;
+  }
+
+  .login-container {
+    width: 100%;
+    max-width: 100%;
+    padding: 32px 28px;
+    border-radius: 20px;
+  }
+
+  .login-header h2 {
+    font-size: 22px;
+    margin-bottom: 6px;
+  }
+
+  .login-header p {
+    font-size: 12px;
+    margin-bottom: 24px;
+  }
+
+  .login-content {
+    margin-bottom: 18px;
+  }
+
+  .login-content form {
+    gap: 12px;
+  }
+
+  .login-content input {
+    padding: 10px 12px;
+    font-size: 13px;
+    border-radius: 10px;
+  }
+
+  .submit-btn {
+    padding: 10px 16px;
+    font-size: 13px;
+    margin-top: 6px;
+  }
+
+  .error-message {
+    font-size: 12px;
+  }
+
+  .form-toggle {
+    margin-top: 14px;
+  }
+
+  .form-toggle p {
+    font-size: 12px;
+  }
+
+  .form-toggle button {
+    font-size: 12px;
+  }
+
+  .login-divider {
+    gap: 12px;
+    margin: 18px 0;
+  }
+
+  .login-divider span {
+    font-size: 12px;
+  }
+
+  .login-other-options {
+    margin-bottom: 18px;
+  }
+
+  .google-login-btn {
+    padding: 10px 16px;
+    font-size: 13px;
+    gap: 10px;
+  }
+
+  .google-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .login-footer {
+    font-size: 11px;
+  }
+
+  .login-close {
+    top: 14px;
+    right: 14px;
+    width: 26px;
+    height: 26px;
+    font-size: 12px;
+  }
+}
+
+/* Mobile - Small (< 480px) */
+@media (max-width: 479px) {
+  .login-overlay {
+    padding: 12px;
+    background: rgba(15, 23, 42, 0.8);
+  }
+
+  .login-container {
+    width: 100%;
+    max-width: 100%;
+    padding: 24px 20px;
+    border-radius: 16px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15);
+  }
+
+  .login-container::before {
+    height: 3px;
+  }
+
+  .login-header h2 {
+    font-size: 20px;
+    margin-bottom: 4px;
+  }
+
+  .login-header p {
+    font-size: 11px;
+    margin-bottom: 20px;
+    line-height: 1.4;
+  }
+
+  .login-content {
+    margin-bottom: 14px;
+  }
+
+  .login-content form {
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .login-content input {
+    padding: 10px 12px;
+    font-size: 13px;
+    border-radius: 10px;
+    border: 1.5px solid #e2e8f0;
+  }
+
+  .login-content input::placeholder {
+    font-size: 12px;
+  }
+
+  .submit-btn {
+    padding: 10px 14px;
+    font-size: 13px;
+    margin-top: 4px;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+
+  .submit-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+  }
+
+  .error-message {
+    font-size: 11px;
+  }
+
+  .form-toggle {
+    margin-top: 10px;
+    text-align: center;
+  }
+
+  .form-toggle p {
+    font-size: 11px;
+  }
+
+  .form-toggle button {
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .login-divider {
+    gap: 10px;
+    margin: 14px 0;
+  }
+
+  .login-divider span {
+    font-size: 11px;
+  }
+
+  .login-other-options {
+    margin-bottom: 14px;
+  }
+
+  .google-login-btn {
+    padding: 10px 12px;
+    font-size: 12px;
+    gap: 8px;
+    border-radius: 10px;
+  }
+
+  .google-icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  .login-footer {
+    font-size: 10px;
+    line-height: 1.4;
+    text-align: center;
+  }
+
+  .login-close {
+    top: 12px;
+    right: 12px;
+    width: 24px;
+    height: 24px;
+    font-size: 11px;
+  }
+
+  /* Ensure keyboard doesn't push form off screen */
+  @supports (padding: max(0px)) {
+    .login-overlay {
+      padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+    }
+  }
+}
