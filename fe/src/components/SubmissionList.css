@@ -590,3 +590,242 @@
 .stat-item svg {
     font-size: 12px;
 }
+
+/* ============================================
+   RESPONSIVE DESIGN - MEDIA QUERIES
+   ============================================ */
+
+/* Tablet (768px - 1023px) */
+@media (max-width: 1023px) and (min-width: 768px) {
+    .submission-container {
+        padding: 16px;
+    }
+
+    .submissions-list {
+        gap: 12px;
+    }
+
+    .submission-card {
+        padding: 14px;
+    }
+
+    .submission-header {
+        gap: 10px;
+    }
+
+    .student-info h4 {
+        font-size: 14px;
+    }
+
+    .submission-meta {
+        gap: 12px;
+        font-size: 12px;
+    }
+
+    .status-badge {
+        padding: 6px 12px;
+        font-size: 11px;
+    }
+
+    .submission-actions {
+        gap: 8px;
+    }
+
+    .action-btn {
+        padding: 8px 14px;
+        font-size: 11px;
+    }
+}
+
+/* Mobile - Large (480px - 767px) */
+@media (max-width: 767px) and (min-width: 480px) {
+    .submission-container {
+        padding: 12px;
+    }
+
+    .submissions-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .submissions-title {
+        font-size: 16px;
+        margin-bottom: 0;
+    }
+
+    .submission-controls {
+        width: 100%;
+    }
+
+    .submissions-list {
+        gap: 10px;
+    }
+
+    .submission-card {
+        padding: 12px;
+        flex-direction: column;
+    }
+
+    .submission-header {
+        gap: 8px;
+        width: 100%;
+    }
+
+    .student-avatar {
+        width: 36px;
+        height: 36px;
+    }
+
+    .student-info h4 {
+        font-size: 13px;
+    }
+
+    .student-info p {
+        font-size: 11px;
+    }
+
+    .submission-meta {
+        gap: 8px;
+        font-size: 11px;
+        flex-wrap: wrap;
+    }
+
+    .status-badge {
+        padding: 5px 10px;
+        font-size: 10px;
+    }
+
+    .submission-grade {
+        order: 3;
+        width: 100%;
+        margin-top: 8px;
+    }
+
+    .submission-actions {
+        order: 4;
+        gap: 6px;
+        width: 100%;
+    }
+
+    .action-btn {
+        flex: 1;
+        padding: 7px 12px;
+        font-size: 10px;
+    }
+
+    .stat-item {
+        font-size: 11px;
+    }
+
+    .stat-item svg {
+        font-size: 10px;
+    }
+}
+
+/* Mobile - Small (< 480px) */
+@media (max-width: 479px) {
+    .submission-container {
+        padding: 8px;
+    }
+
+    .submissions-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .submissions-title {
+        font-size: 15px;
+        margin-bottom: 0;
+    }
+
+    .submission-controls {
+        width: 100%;
+    }
+
+    .submission-filter,
+    .submission-search {
+        width: 100%;
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+
+    .submissions-list {
+        gap: 8px;
+    }
+
+    .submission-card {
+        padding: 10px;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .submission-header {
+        gap: 6px;
+        width: 100%;
+    }
+
+    .student-avatar {
+        width: 32px;
+        height: 32px;
+        flex-shrink: 0;
+    }
+
+    .student-info h4 {
+        font-size: 12px;
+        margin-bottom: 2px;
+    }
+
+    .student-info p {
+        font-size: 10px;
+    }
+
+    .submission-meta {
+        gap: 6px;
+        font-size: 10px;
+        flex-wrap: wrap;
+        width: 100%;
+    }
+
+    .status-badge {
+        padding: 4px 8px;
+        font-size: 9px;
+        border-radius: 8px;
+    }
+
+    .submission-grade {
+        order: 3;
+        width: 100%;
+        margin-top: 6px;
+        font-size: 11px;
+    }
+
+    .grade-value {
+        font-size: 14px;
+    }
+
+    .submission-actions {
+        order: 4;
+        gap: 4px;
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .action-btn {
+        flex: 1;
+        min-width: 70px;
+        padding: 6px 8px;
+        font-size: 9px;
+        border-radius: 8px;
+    }
+
+    .stat-item {
+        font-size: 10px;
+    }
+
+    .stat-item svg {
+        font-size: 9px;
+    }
+}

@@ -498,6 +498,428 @@
     box-shadow: 0 2px 8px rgba(99, 102, 241, 0.15);
 }
 
+/* ============================================
+   RESPONSIVE DESIGN - MEDIA QUERIES
+   ============================================ */
+
+/* Tablet (768px - 1023px) */
+@media (max-width: 1023px) and (min-width: 768px) {
+    .assignment-header {
+        padding: 12px 16px;
+        gap: 12px;
+    }
+
+    .assignment-content-layout {
+        flex-direction: column;
+    }
+
+    .assignment-left-panel {
+        flex: 1;
+        padding: 18px;
+        border-right: none;
+        border-bottom: 1px solid #e2e8f0;
+        overflow-y: auto;
+    }
+
+    .assignment-right-panel {
+        width: 100%;
+        height: auto;
+        border-left: none;
+        border-top: 1px solid #e2e8f0;
+        padding: 16px;
+        max-height: 50%;
+    }
+
+    .post-title-section h2 {
+        font-size: 20px;
+    }
+
+    .post-content-text {
+        font-size: 14px;
+    }
+
+    .detail-attachment-card {
+        min-width: 100%;
+    }
+
+    .student-grade-card {
+        padding: 12px;
+        gap: 10px;
+    }
+
+    .grade-circle {
+        width: 44px;
+        height: 44px;
+        font-size: 16px;
+    }
+
+    .comment-textarea {
+        width: 90%;
+    }
+
+    .my-work-card {
+        padding: 14px;
+    }
+}
+
+/* Mobile - Large (480px - 767px) */
+@media (max-width: 767px) and (min-width: 480px) {
+    .assignment-header {
+        padding: 10px 12px;
+        gap: 10px;
+    }
+
+    .back-btn {
+        padding: 6px;
+        font-size: 18px;
+    }
+
+    .assignment-content-layout {
+        flex-direction: column;
+    }
+
+    .assignment-left-panel {
+        flex: 1;
+        padding: 14px;
+        border-right: none;
+        border-bottom: 1px solid #e2e8f0;
+        overflow-y: auto;
+    }
+
+    .assignment-right-panel {
+        width: 100%;
+        height: auto;
+        border-left: none;
+        border-top: 1px solid #e2e8f0;
+        padding: 12px;
+        max-height: none;
+        overflow-y: auto;
+    }
+
+    .post-header-detail {
+        gap: 10px;
+        margin-bottom: 14px;
+    }
+
+    .user-avatar-lg {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+    }
+
+    .post-title-section h2 {
+        font-size: 18px;
+    }
+
+    .post-meta-detail {
+        font-size: 12px;
+        gap: 8px;
+    }
+
+    .post-content-text {
+        font-size: 13px;
+        margin-bottom: 16px;
+    }
+
+    .detail-attachment-card {
+        min-width: 100%;
+        padding: 10px;
+        font-size: 12px;
+    }
+
+    .comments-section-detail {
+        padding-top: 16px;
+        margin-top: 20px;
+    }
+
+    .comments-header-detail {
+        font-size: 14px;
+        margin-bottom: 12px;
+    }
+
+    .comment-item-full {
+        gap: 10px;
+        padding: 10px;
+    }
+
+    .comment-list-full {
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .btn-submit-work {
+        padding: 10px;
+        font-size: 13px;
+    }
+
+    .btn-unsubmit-simple {
+        padding: 8px;
+        font-size: 12px;
+    }
+
+    .student-grade-card {
+        gap: 10px;
+        padding: 10px;
+        font-size: 13px;
+    }
+
+    .grade-circle {
+        width: 40px;
+        height: 40px;
+        font-size: 14px;
+    }
+
+    .add-comment-detail {
+        gap: 8px;
+        padding: 2px;
+    }
+
+    .comment-textarea {
+        width: 85%;
+        padding: 10px 12px;
+        min-height: 40px;
+        font-size: 13px;
+    }
+
+    .comment-submit-btn {
+        padding: 8px 16px;
+        font-size: 12px;
+    }
+
+    .my-work-card {
+        padding: 12px;
+    }
+
+    .my-work-panel {
+        padding: 14px;
+        gap: 14px;
+    }
+
+    .submitted-files-section {
+        padding: 10px;
+        margin-bottom: 12px;
+    }
+
+    .submitted-files-section h4 {
+        font-size: 12px;
+        margin-bottom: 8px;
+    }
+}
+
+/* Mobile - Small (< 480px) */
+@media (max-width: 479px) {
+    .assignment-detail-container {
+        height: 100%;
+    }
+
+    .assignment-header {
+        padding: 10px;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .back-btn {
+        padding: 4px;
+        font-size: 16px;
+        width: 32px;
+        height: 32px;
+    }
+
+    .assignment-content-layout {
+        flex-direction: column;
+        overflow-y: auto;
+    }
+
+    .assignment-left-panel {
+        flex: 1;
+        padding: 12px;
+        border-right: none;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .assignment-right-panel {
+        width: 100%;
+        height: auto;
+        border-left: none;
+        border-top: 1px solid #e2e8f0;
+        padding: 10px;
+        overflow-y: auto;
+    }
+
+    .post-header-detail {
+        gap: 8px;
+        margin-bottom: 10px;
+    }
+
+    .user-avatar-lg {
+        width: 36px;
+        height: 36px;
+        font-size: 14px;
+    }
+
+    .post-title-section h2 {
+        font-size: 16px;
+    }
+
+    .post-meta-detail {
+        font-size: 11px;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .post-body-detail {
+        margin-bottom: 16px;
+    }
+
+    .post-content-text {
+        font-size: 12px;
+        line-height: 1.5;
+        margin-bottom: 12px;
+    }
+
+    .detail-attachments {
+        gap: 8px;
+        margin-top: 12px;
+    }
+
+    .detail-attachment-card {
+        min-width: 100%;
+        padding: 8px;
+        font-size: 11px;
+        gap: 8px;
+    }
+
+    .comments-section-detail {
+        padding-top: 12px;
+        margin-top: 16px;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .comments-header-detail {
+        font-size: 13px;
+        margin-bottom: 10px;
+    }
+
+    .comment-list-full {
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+
+    .comment-item-full {
+        gap: 8px;
+        padding: 8px;
+    }
+
+    .student-actions-row {
+        gap: 10px;
+        margin-top: 12px;
+    }
+
+    .btn-submit-work {
+        padding: 9px;
+        font-size: 12px;
+    }
+
+    .btn-unsubmit-simple {
+        padding: 7px;
+        font-size: 11px;
+    }
+
+    .submitted-files-section {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 8px;
+        margin-bottom: 10px;
+    }
+
+    .submitted-files-section h4 {
+        font-size: 11px;
+        margin-bottom: 6px;
+    }
+
+    .sdp-file-link {
+        padding: 8px;
+        font-size: 12px;
+        border-radius: 8px;
+    }
+
+    .submitted-at-text {
+        font-size: 10px;
+    }
+
+    .student-grade-card {
+        gap: 8px;
+        padding: 8px;
+        font-size: 12px;
+    }
+
+    .grade-circle {
+        width: 36px;
+        height: 36px;
+        font-size: 12px;
+        flex-shrink: 0;
+    }
+
+    .grade-circle span {
+        font-size: 10px;
+    }
+
+    .grade-label {
+        font-size: 12px;
+        margin-bottom: 2px;
+    }
+
+    .grade-comment-text {
+        font-size: 11px;
+    }
+
+    .add-comment-detail {
+        gap: 6px;
+        padding: 2px;
+        margin-top: 12px;
+    }
+
+    .comment-textarea {
+        width: 80%;
+        padding: 8px 10px;
+        min-height: 36px;
+        font-size: 12px;
+        border-radius: 10px;
+    }
+
+    .comment-submit-btn {
+        padding: 7px 12px;
+        font-size: 11px;
+        gap: 4px;
+    }
+
+    .my-work-panel {
+        padding: 10px;
+        gap: 12px;
+    }
+
+    .my-work-card {
+        padding: 10px;
+        border-radius: 10px;
+    }
+
+    .uploaded-file-item {
+        gap: 8px;
+        padding: 8px;
+        margin-bottom: 6px;
+        font-size: 11px;
+    }
+
+    .file-link-name-submitted {
+        font-size: 11px;
+    }
+
+    .remove-file-btn {
+        padding: 4px 6px;
+    }
+}
+
 .stat-box.submitted.active {
     border-color: #10b981 !important;
     background-color: #ecfdf5 !important;

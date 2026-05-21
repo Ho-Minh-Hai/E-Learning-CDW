@@ -1708,3 +1708,162 @@
     from { opacity: 0; transform: translateY(-4px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+/* ============================================
+   RESPONSIVE DESIGN - MEDIA QUERIES
+   ============================================ */
+
+/* Tablet (768px - 1023px) */
+@media (max-width: 1023px) and (min-width: 768px) {
+    .classes-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+    }
+
+    .class-card {
+        padding: 16px;
+    }
+
+    .class-header h3 {
+        font-size: 16px;
+    }
+
+    .class-body {
+        margin-top: 12px;
+    }
+
+    .class-stats {
+        gap: 12px;
+    }
+
+    .stat-item span {
+        font-size: 13px;
+    }
+
+    .class-actions {
+        gap: 8px;
+    }
+
+    .class-btn {
+        padding: 8px 16px;
+        font-size: 12px;
+    }
+}
+
+/* Mobile - Large (480px - 767px) */
+@media (max-width: 767px) and (min-width: 480px) {
+    .classes-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .class-card {
+        padding: 14px;
+    }
+
+    .class-header {
+        gap: 10px;
+    }
+
+    .class-header h3 {
+        font-size: 15px;
+    }
+
+    .class-body {
+        margin-top: 10px;
+        font-size: 13px;
+    }
+
+    .class-stats {
+        gap: 10px;
+        margin: 12px 0;
+    }
+
+    .stat-item {
+        gap: 6px;
+        font-size: 12px;
+    }
+
+    .stat-item span {
+        font-size: 12px;
+    }
+
+    .class-actions {
+        gap: 6px;
+    }
+
+    .class-btn {
+        padding: 7px 12px;
+        font-size: 11px;
+    }
+
+    .class-code {
+        font-size: 11px;
+    }
+}
+
+/* Mobile - Small (< 480px) */
+@media (max-width: 479px) {
+    .classes-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .class-card {
+        padding: 12px;
+        border-radius: 12px;
+    }
+
+    .class-header {
+        gap: 8px;
+    }
+
+    .class-header h3 {
+        font-size: 14px;
+    }
+
+    .class-body {
+        margin-top: 8px;
+        font-size: 12px;
+    }
+
+    .class-stats {
+        gap: 8px;
+        margin: 10px 0;
+        flex-wrap: wrap;
+    }
+
+    .stat-item {
+        gap: 4px;
+        font-size: 11px;
+    }
+
+    .stat-item span {
+        font-size: 11px;
+    }
+
+    .stat-item svg {
+        width: 14px;
+        height: 14px;
+    }
+
+    .class-actions {
+        gap: 4px;
+        flex-wrap: wrap;
+    }
+
+    .class-btn {
+        padding: 6px 10px;
+        font-size: 10px;
+        flex: 1;
+        min-width: 80px;
+    }
+
+    .class-code {
+        font-size: 10px;
+    }
+
+    .class-footer {
+        gap: 6px;
+    }
+}
