@@ -3,11 +3,49 @@ import './Chat.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
     faSearch,  
-    faPaperclip, 
     faSmile,
     faPaperPlane
 } from '@fortawesome/free-solid-svg-icons';
-import { supabase } from '../supabaseClient';
+
+const API_BASE_URL = 'http://localhost:8080/api';
+const CHAT_TIME_ZONE = 'Asia/Ho_Chi_Minh';
+const RECALL_LIMIT_MS = 3 * 60 * 60 * 1000;
+
+const normalizeUser = (user) => user ? ({
+    ...user,
+    full_name: user.full_name ?? user.fullName,
+    avatar_url: user.avatar_url ?? user.avatarUrl
+}) : null;
+
+const normalizeConversation = (conversation) => ({
+    ...conversation,
+    user1_id: conversation.user1_id ?? conversation.user1?.id,
+    user2_id: conversation.user2_id ?? conversation.user2?.id,
+    created_at: conversation.created_at ?? conversation.createdAt,
+    user1: normalizeUser(conversation.user1),
+    user2: normalizeUser(conversation.user2)
+});
+
+const normalizeMessage = (message) => ({
+    ...message,
+    conversation_id: message.conversation_id ?? message.conversation?.id,
+    sender_id: message.sender_id ?? message.sender?.id,
+    read_at: message.read_at ?? message.readAt,
+    created_at: message.created_at ?? message.createdAt,
+    updated_at: message.updated_at ?? message.updatedAt,
+    is_edited: message.is_edited ?? message.isEdited
+});
+
+const normalizeMessageEdit = (edit) => ({
+    ...edit,
+    old_content: edit.old_content ?? edit.oldContent,
+    edited_at: edit.edited_at ?? edit.editedAt
+});
+
+const readResponseError = async (response, fallbackMessage) => {
+    const body = await response.json().catch(() => ({}));
+    return body.message || `${fallbackMessage} (${response.status})`;
+};
 
 const Chat = ({ session, userData, pendingConversation, refreshUnreadCount }) => {
     const [selectedConversation, setSelectedConversation] = useState(null);
@@ -48,7 +86,7 @@ const Chat = ({ session, userData, pendingConversation, refreshUnreadCount }) =>
     ];
 
     const insertEmoji = (emoji) => {
-        setNewMessage(newMessage + emoji);
+        setNewMessage(currentMessage => currentMessage + emoji);
         setShowEmojiPicker(false);
         emojiInputRef.current?.focus();
     };
@@ -64,62 +102,20 @@ const Chat = ({ session, userData, pendingConversation, refreshUnreadCount }) =>
     useEffect(() => {
         if (session?.user?.id) {
             fetchConversations();
-            
-            // Subscribe conversations mới
-            const convSubscription = supabase
-                .channel('public:conversations')
-                .on('postgres_changes', { 
-                    event: 'INSERT', 
-                    schema: 'public', 
-                    table: 'conversations',
-                    filter: `user1_id=eq.${session.user.id}`
-                }, () => fetchConversations())
-                .on('postgres_changes', { 
-                    event: 'INSERT', 
-                    schema: 'public', 
-                    table: 'conversations',
-                    filter: `user2_id=eq.${session.user.id}`
-                }, () => fetchConversations())
-                .subscribe();
-
-            return () => {
-                supabase.removeChannel(convSubscription);
-            };
+            const conversationInterval = setInterval(fetchConversations, 10000);
+            return () => clearInterval(conversationInterval);
         }
     }, [session?.user?.id]);
 
-    // Subscribe messages khi conversation thay đổi
     useEffect(() => {
         if (selectedConversation) {
             fetchMessages(selectedConversation.id);
             markAsRead(selectedConversation.id);
-
-            const msgSubscription = supabase
-                .channel(`public:messages:conversation_id=eq.${selectedConversation.id}`)
-                .on('postgres_changes', { 
-                    event: 'INSERT', 
-                    schema: 'public', 
-                    table: 'messages',
-                    filter: `conversation_id=eq.${selectedConversation.id}`
-                }, (payload) => {
-                    const msg = payload.new;
-                    setMessages(prev => [...prev, msg]);
-                    // cap nhật last message cho conversation này
-                    setConversationLastMessages(prev => ({
-                        ...prev,
-                        [selectedConversation.id]: msg
-                    }));
-                    
-                    // Nếu tin nhắn đến từ người khác trong khi đang mở chat này, mark as read ngay
-                    if (msg.sender_id !== session.user.id) {
-                        markAsRead(selectedConversation.id);
-                    }
-                })
-                .subscribe();
-
-            return () => {
-                supabase.removeChannel(msgSubscription);
-            };
+            const messageInterval = setInterval(() => {
+                fetchMessages(selectedConversation.id);
+                markAsRead(selectedConversation.id);
+            }, 5000);
+            return () => clearInterval(messageInterval);
         } else {
             setMessages([]);
         }
@@ -172,50 +168,41 @@ const Chat = ({ session, userData, pendingConversation, refreshUnreadCount }) =>
     };
 
     const fetchConversations = async () => {
-        const { data, error } = await supabase
-            .from('conversations')
-            .select(`
-                *,
-                user1:user1_id (id, full_name, avatar_url, email),
-                user2:user2_id (id, full_name, avatar_url, email)
-            `)
-            .or(`user1_id.eq.${session.user.id},user2_id.eq.${session.user.id}`)
-            .order('created_at', { ascending: false });
-
-        if (error) console.error('Error fetching conversations:', error);
-        else {
-            setConversations(data);
-            
-            if (data && data.length > 0) {
-                const conversationIds = data.map(conv => conv.id);
-                const { data: messages, error: msgError } = await supabase
-                    .from('messages')
-                    .select('*')
-                    .in('conversation_id', conversationIds)
-                    .order('created_at', { ascending: false });
-                
-                if (!msgError && messages) {
-                    const lastMessages = {};
-                    messages.forEach(msg => {
-                        if (!lastMessages[msg.conversation_id]) {
-                            lastMessages[msg.conversation_id] = msg;
-                        }
-                    });
-                    setConversationLastMessages(lastMessages);
-                }
+        try {
+            const response = await fetch(`${API_BASE_URL}/chat/conversations/${session.user.id}`);
+            if (!response.ok) {
+                throw new Error(`Không tải được cuộc trò chuyện (${response.status})`);
             }
+            const data = (await response.json()).map(normalizeConversation);
+            setConversations(data);
+
+            const latestMessages = await Promise.all(data.map(async (conversation) => {
+                const messagesResponse = await fetch(`${API_BASE_URL}/chat/messages/${conversation.id}`);
+                if (!messagesResponse.ok) return null;
+                const conversationMessages = (await messagesResponse.json()).map(normalizeMessage);
+                return conversationMessages[conversationMessages.length - 1] || null;
+            }));
+
+            const lastMessages = {};
+            latestMessages.filter(Boolean).forEach(message => {
+                lastMessages[message.conversation_id] = message;
+            });
+            setConversationLastMessages(lastMessages);
+        } catch (error) {
+            console.error('Error fetching conversations:', error.message || error);
         }
     };
 
     const fetchMessages = async (conversationId) => {
-        const { data, error } = await supabase
-            .from('messages')
-            .select('*')
-            .eq('conversation_id', conversationId)
-            .order('created_at', { ascending: true });
-
-        if (error) console.error('Error fetching messages:', error);
-        else setMessages(data);
+        try {
+            const response = await fetch(`${API_BASE_URL}/chat/messages/${conversationId}`);
+            if (!response.ok) {
+                throw new Error(`Không tải được tin nhắn (${response.status})`);
+            }
+            setMessages((await response.json()).map(normalizeMessage));
+        } catch (error) {
+            console.error('Error fetching messages:', error.message || error);
+        }
     };
 
     const handleSearch = async (e) => {
@@ -223,91 +210,82 @@ const Chat = ({ session, userData, pendingConversation, refreshUnreadCount }) =>
         setSearchTerm(value);
         if (value.length > 1) {
             setLoading(true);
-            const { data, error } = await supabase
-                .from('users')
-                .select('id, full_name, avatar_url, email')
-                .neq('id', session.user.id)
-                .ilike('full_name', `%${value}%`)
-                .limit(5);
-            
-            if (error) console.error('Error searching users:', error);
-            else setSearchResults(data);
-            setLoading(false);
+            try {
+                const params = new URLSearchParams({ query: value, excludeId: session.user.id });
+                const response = await fetch(`${API_BASE_URL}/auth/users/search?${params}`);
+                if (!response.ok) {
+                    throw new Error(`Không tìm được người dùng (${response.status})`);
+                }
+                setSearchResults((await response.json()).map(normalizeUser));
+            } catch (error) {
+                console.error('Error searching users:', error.message || error);
+                setSearchResults([]);
+            } finally {
+                setLoading(false);
+            }
         } else {
             setSearchResults([]);
         }
     };
 
     const startConversation = async (otherUser) => {
-        const user1_id = session.user.id < otherUser.id ? session.user.id : otherUser.id;
-        const user2_id = session.user.id < otherUser.id ? otherUser.id : session.user.id;
-
-        // Check if conversation already exists
-        let { data: existingConv } = await supabase
-            .from('conversations')
-            .select('*')
-            .or(`and(user1_id.eq.${user1_id},user2_id.eq.${user2_id})`)
-            .maybeSingle();
-
-        if (existingConv) {
-            setSelectedConversation({
-                ...existingConv,
-                otherUser: otherUser
+        try {
+            if (!userData?.id) {
+                throw new Error('Tài khoản chưa được đồng bộ với máy chủ. Vui lòng đăng xuất và đăng nhập lại.');
+            }
+            const response = await fetch(`${API_BASE_URL}/chat/conversations`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    user1Id: userData.id,
+                    user2Id: otherUser.id
+                })
             });
+            if (!response.ok) {
+                throw new Error(await readResponseError(response, 'Không tạo được cuộc trò chuyện'));
+            }
+            const conversation = normalizeConversation(await response.json());
+            setSelectedConversation({
+                ...conversation,
+                otherUser
+            });
+            await fetchConversations();
+        } catch (error) {
+            console.error('Error creating conversation:', error.message || error);
+            alert(error.message || 'Lỗi tạo cuộc trò chuyện.');
+        } finally {
             setSearchTerm('');
             setSearchResults([]);
-            return;
         }
-
-        // tạo conversation mới
-        const { data: newConv, error: createError } = await supabase
-            .from('conversations')
-            .insert([
-                { user1_id, user2_id }
-            ])
-            .select()
-            .single();
-
-        if (createError) {
-            console.error('Error creating conversation:', createError);
-            alert('Lỗi tạo cuộc trò chuyện. Vui lòng kiểm tra RLS Policy trên Supabase.');
-        } else {
-            setSelectedConversation({
-                ...newConv,
-                otherUser: otherUser
-            });
-            fetchConversations();
-        }
-        setSearchTerm('');
-        setSearchResults([]);
     };
 
     const sendMessage = async (e) => {
         e.preventDefault();
         if (!newMessage.trim() || !selectedConversation) return;
 
-        const messageData = { 
-            conversation_id: selectedConversation.id, 
-            sender_id: session.user.id, 
-            content: newMessage,
-            created_at: new Date().toISOString()
-        };
-
-        const { data, error } = await supabase
-            .from('messages')
-            .insert([messageData])
-            .select()
-            .single();
-
-        if (error) console.error('Error sending message:', error);
-        else {
-            setNewMessage('');
-            if (data) {
-                setConversationLastMessages(prev => ({
-                    ...prev,
-                    [selectedConversation.id]: data
-                }));
+        const content = newMessage.trim();
+        try {
+            const response = await fetch(`${API_BASE_URL}/chat/messages`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    conversationId: selectedConversation.id,
+                    senderId: session.user.id,
+                    content
+                })
+            });
+            if (!response.ok) {
+                throw new Error(`Không gửi được tin nhắn (${response.status})`);
             }
+            const data = normalizeMessage(await response.json());
+            setNewMessage('');
+            setMessages(prev => prev.some(msg => msg.id === data.id) ? prev : [...prev, data]);
+            setConversationLastMessages(prev => ({
+                ...prev,
+                [selectedConversation.id]: data
+            }));
+        } catch (error) {
+            console.error('Error sending message:', error.message || error);
         }
     };
 
@@ -317,10 +295,14 @@ const Chat = ({ session, userData, pendingConversation, refreshUnreadCount }) =>
 
     const formatTime = (dateString) => {
         if (!dateString) return '';
-        const utcDate = new Date(dateString);
-        // Cộng thêm 7 tiếng (7 * 60 * 60 * 1000 miliseconds) để chuyển từ UTC sang UTC+7
-        const vnDate = new Date(utcDate.getTime() + 7 * 60 * 60 * 1000);
-        return vnDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const date = new Date(dateString);
+        if (Number.isNaN(date.getTime())) return '';
+        return new Intl.DateTimeFormat('vi-VN', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false,
+            timeZone: CHAT_TIME_ZONE
+        }).format(date);
     };
 
     const formatLastMessage = (conv) => {
@@ -342,16 +324,23 @@ const Chat = ({ session, userData, pendingConversation, refreshUnreadCount }) =>
 
     const formatDetailDate = (dateString) => {
         if (!dateString) return '';
-        const utcDate = new Date(dateString);
-        const vnDate = new Date(utcDate.getTime() + 7 * 60 * 60 * 1000);
+        const date = new Date(dateString);
+        if (Number.isNaN(date.getTime())) return '';
+
+        const parts = new Intl.DateTimeFormat('vi-VN', {
+            hour: '2-digit',
+            minute: '2-digit',
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour12: false,
+            timeZone: CHAT_TIME_ZONE
+        }).formatToParts(date).reduce((result, part) => {
+            result[part.type] = part.value;
+            return result;
+        }, {});
         
-        const hours = String(vnDate.getHours()).padStart(2, '0');
-        const minutes = String(vnDate.getMinutes()).padStart(2, '0');
-        const day = String(vnDate.getDate()).padStart(2, '0');
-        const month = String(vnDate.getMonth() + 1).padStart(2, '0');
-        const year = vnDate.getFullYear();
-        
-        return `${hours}:${minutes} ${day}/${month}/${year}`;
+        return `${parts.hour}:${parts.minute} ${parts.day}/${parts.month}/${parts.year}`;
     };
 
     const handleDeleteMessage = async (messageId) => {
@@ -373,19 +362,17 @@ const Chat = ({ session, userData, pendingConversation, refreshUnreadCount }) =>
                 return;
             }
 
-            const { error } = await supabase
-                .from('messages')
-                .delete()
-                .eq('id', messageId);
-            
-            if (error) {
-                console.error('Error deleting message:', error);
-            } else {
-                setMessages(prev => prev.filter(msg => msg.id !== messageId));
-                setOpenMenuId(null);
+            const response = await fetch(`${API_BASE_URL}/chat/messages/${messageId}`, {
+                method: 'DELETE'
+            });
+            if (!response.ok) {
+                throw new Error(`Không thu hồi được tin nhắn (${response.status})`);
             }
+            setMessages(prev => prev.filter(msg => msg.id !== messageId));
+            await fetchConversations();
+            setOpenMenuId(null);
         } catch (error) {
-            console.error('Error:', error);
+            console.error('Error deleting message:', error.message || error);
         }
     };
 
@@ -399,47 +386,37 @@ const Chat = ({ session, userData, pendingConversation, refreshUnreadCount }) =>
         if (!editingContent.trim() || !editingMessageId) return;
 
         try {
-            const currentMessage = messages.find(m => m.id === editingMessageId);
-            
-            // Lưu lịch sử chỉnh sửa
-            const { data: editData, error: editError } = await supabase
-                .from('message_edits')
-                .insert([{
-                    message_id: editingMessageId,
-                    old_content: currentMessage.content,
-                    edited_at: new Date().toISOString()
-                }])
-                .select();
-
-            if (editError) {
-                console.error('Error saving edit history:', editError);
+            const response = await fetch(`${API_BASE_URL}/chat/messages/${editingMessageId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content: editingContent.trim() })
+            });
+            if (!response.ok) {
+                throw new Error(`Không chỉnh sửa được tin nhắn (${response.status})`);
             }
-
-            // Cập nhật nội dung tin nhắn
-            const { error } = await supabase
-                .from('messages')
-                .update({ 
-                    content: editingContent,
-                    is_edited: true,
-                    updated_at: new Date().toISOString()
-                })
-                .eq('id', editingMessageId);
-            
-            if (error) {
-                console.error('Error updating message:', error);
-            } else {
+            const updatedMessage = normalizeMessage(await response.json());
                 setMessages(prev => 
                     prev.map(msg => 
                         msg.id === editingMessageId 
-                            ? { ...msg, content: editingContent, is_edited: true, updated_at: new Date().toISOString() }
+                            ? updatedMessage
                             : msg
                     )
                 );
+                setConversationLastMessages(prev => {
+                    const lastMessage = prev[selectedConversation.id];
+                    if (!lastMessage || lastMessage.id !== editingMessageId) return prev;
+                    return {
+                        ...prev,
+                        [selectedConversation.id]: {
+                            ...lastMessage,
+                            ...updatedMessage
+                        }
+                    };
+                });
                 setEditingMessageId(null);
                 setEditingContent('');
-            }
         } catch (error) {
-            console.error('Error:', error);
+            console.error('Error updating message:', error.message || error);
         }
     };
 
@@ -451,13 +428,9 @@ const Chat = ({ session, userData, pendingConversation, refreshUnreadCount }) =>
     const canRecallMessage = (message) => {
         if (!message.created_at) return false;
         try {
-            // created_at từ Supabase là UTC nhưng backend lưu thiếu 7 giờ, cộng 7 tiếng để bù
             const createdTime = new Date(message.created_at);
-            const createdTimeVN = new Date(createdTime.getTime() + 7 * 60 * 60 * 1000);
-            const now = new Date();
-            const timeDiffMs = now.getTime() - createdTimeVN.getTime();
-            const hoursDifference = timeDiffMs / (1000 * 60 * 60);
-            return hoursDifference < 3 && hoursDifference >= 0;
+            const timeDiffMs = Date.now() - createdTime.getTime();
+            return !Number.isNaN(timeDiffMs) && timeDiffMs < RECALL_LIMIT_MS && timeDiffMs >= 0;
         } catch (e) {
             return false;
         }
@@ -465,20 +438,17 @@ const Chat = ({ session, userData, pendingConversation, refreshUnreadCount }) =>
 
     const fetchMessageEdits = async (messageId) => {
         try {
-            const { data, error } = await supabase
-                .from('message_edits')
-                .select('*')
-                .eq('message_id', messageId)
-                .order('edited_at', { ascending: false });
-            
-            if (!error && data) {
-                setMessageEdits(prev => ({
-                    ...prev,
-                    [messageId]: data
-                }));
+            const response = await fetch(`${API_BASE_URL}/chat/messages/${messageId}/edits`);
+            if (!response.ok) {
+                throw new Error(`Không tải được lịch sử chỉnh sửa (${response.status})`);
             }
+            const data = (await response.json()).map(normalizeMessageEdit).reverse();
+            setMessageEdits(prev => ({
+                ...prev,
+                [messageId]: data
+            }));
         } catch (error) {
-            console.error('Error fetching edits:', error);
+            console.error('Error fetching edits:', error.message || error);
         }
     };
 

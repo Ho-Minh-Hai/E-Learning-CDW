@@ -39,7 +39,7 @@ public class Message {
     @Column(name = "read_at")
     private LocalDateTime readAt;
 
-    @Column(name = "created_at", insertable = false, updatable = false)
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")

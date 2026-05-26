@@ -26,6 +26,6 @@ public class MessageEdit {
     @Column(columnDefinition = "TEXT", name = "old_content")
     private String oldContent;
 
-    @Column(name = "edited_at", insertable = false, updatable = false)
+    @Column(name = "edited_at", updatable = false)
     private LocalDateTime editedAt;
 }

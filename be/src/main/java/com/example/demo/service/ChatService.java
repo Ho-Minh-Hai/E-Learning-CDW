@@ -9,10 +9,12 @@ import com.example.demo.repository.MessageRepository;
 import com.example.demo.repository.MessageEditRepository;
 import com.example.demo.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -41,13 +43,23 @@ public class ChatService {
     }
 
     public Conversation getOrCreateConversation(UUID user1Id, UUID user2Id) {
-        User u1 = userRepository.findById(user1Id).orElseThrow(() -> new RuntimeException("User 1 not found"));
-        User u2 = userRepository.findById(user2Id).orElseThrow(() -> new RuntimeException("User 2 not found"));
+        User firstUser = userRepository.findById(user1Id)
+                .orElseThrow(() -> new RuntimeException("Tài khoản của bạn chưa được đồng bộ với máy chủ."));
+        User secondUser = userRepository.findById(user2Id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người nhận tin nhắn."));
 
-        return conversationRepository.findBetweenUsers(u1, u2)
-                .orElseGet(() -> conversationRepository.save(
-                        Conversation.builder().user1(u1).user2(u2).build()
-                ));
+        User u1 = user1Id.compareTo(user2Id) <= 0 ? firstUser : secondUser;
+        User u2 = user1Id.compareTo(user2Id) <= 0 ? secondUser : firstUser;
+        Optional<Conversation> existing = conversationRepository.findBetweenUsers(u1, u2);
+        if (existing.isPresent()) {
+            return existing.get();
+        }
+
+        try {
+            return conversationRepository.save(Conversation.builder().user1(u1).user2(u2).build());
+        } catch (DataIntegrityViolationException exception) {
+            return conversationRepository.findBetweenUsers(u1, u2).orElseThrow(() -> exception);
+        }
     }
 
     public Message saveMessage(UUID conversationId, UUID senderId, String content) {
