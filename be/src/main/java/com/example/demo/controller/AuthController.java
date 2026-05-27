@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -32,6 +33,23 @@ public class AuthController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message", "Lỗi đăng nhập backend: " + e.getMessage()));
         }
+    }
+
+    @GetMapping("/users/search")
+    public ResponseEntity<List<SearchUserResponse>> searchUsers(
+            @RequestParam String query,
+            @RequestParam UUID excludeId) {
+        List<SearchUserResponse> users = userService.searchUsers(query, excludeId).stream()
+                .map(user -> new SearchUserResponse(
+                        user.getId(),
+                        user.getFullName(),
+                        user.getAvatarUrl(),
+                        user.getEmail()))
+                .toList();
+        return ResponseEntity.ok(users);
+    }
+
+    public record SearchUserResponse(UUID id, String fullName, String avatarUrl, String email) {
     }
 
     @Data

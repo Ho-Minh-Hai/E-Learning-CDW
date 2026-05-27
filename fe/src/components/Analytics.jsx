@@ -10,7 +10,6 @@ import {
     faGraduationCap,
     faChartPie
 } from '@fortawesome/free-solid-svg-icons';
-import { supabase } from '../supabaseClient';
 import ExcelJS from 'exceljs';
 import './Analytics.css';
 
@@ -238,36 +237,23 @@ const Analytics = ({ session, classes, onSwitchToMessages }) => {
                 email: student.email
             };
 
-            const user1_id = session.user.id < otherUser.id ? session.user.id : otherUser.id;
-            const user2_id = session.user.id < otherUser.id ? otherUser.id : session.user.id;
-
-            // Kiểm tra xem đã có conversation chưa
-            let { data: existingConv } = await supabase
-                .from('conversations')
-                .select('*')
-                .or(`and(user1_id.eq.${user1_id},user2_id.eq.${user2_id})`)
-                .maybeSingle();
-
-            if (existingConv) {
-                onSwitchToMessages(existingConv.id, otherUser);
-                return;
+            const response = await fetch('http://localhost:8080/api/chat/conversations', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    user1Id: session.user.id,
+                    user2Id: otherUser.id
+                })
+            });
+            if (!response.ok) {
+                const body = await response.json().catch(() => ({}));
+                throw new Error(body.message || 'Lỗi tạo cuộc trò chuyện.');
             }
-
-            // Tạo conversation mới
-            const { data: newConv, error: createError } = await supabase
-                .from('conversations')
-                .insert([{ user1_id, user2_id }])
-                .select()
-                .single();
-
-            if (createError) {
-                console.error('Error creating conversation:', createError);
-                alert('Lỗi tạo cuộc trò chuyện.');
-            } else {
-                onSwitchToMessages(newConv.id, otherUser);
-            }
+            const conversation = await response.json();
+            onSwitchToMessages(conversation.id, otherUser);
         } catch (err) {
             console.error("Error starting message:", err);
+            alert(err.message || 'Lỗi tạo cuộc trò chuyện.');
         }
     };
 

@@ -28,6 +28,12 @@ public class ChatController {
     @PostMapping("/conversations")
     public ResponseEntity<?> getOrCreateConversation(@RequestBody Map<String, UUID> payload) {
         try {
+            if (payload.get("user1Id") == null || payload.get("user2Id") == null) {
+                return ResponseEntity.badRequest().body(Map.of("message", "Thiếu ID người dùng để tạo cuộc trò chuyện."));
+            }
+            if (payload.get("user1Id").equals(payload.get("user2Id"))) {
+                return ResponseEntity.badRequest().body(Map.of("message", "Không thể tự tạo cuộc trò chuyện với chính mình."));
+            }
             return ResponseEntity.ok(chatService.getOrCreateConversation(
                     payload.get("user1Id"),
                     payload.get("user2Id")

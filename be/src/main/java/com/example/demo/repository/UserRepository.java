@@ -14,6 +14,8 @@ import org.springframework.data.repository.query.Param;
 public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> findByEmail(String email);
 
+    List<User> findTop5ByIdNotAndFullNameContainingIgnoreCase(UUID excludedId, String fullName);
+
     @Query("SELECT u.email FROM User u JOIN ClassMember cm ON u.id = cm.studentId WHERE cm.classId = :classId")
     List<String> findEmailsByClassId(@Param("classId") UUID classId);
 }

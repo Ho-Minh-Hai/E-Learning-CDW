@@ -55,48 +55,29 @@ const AssignmentDetail = ({ post, session, userRole, onBack, selectedClass, user
             }
 
             const teacherId = post.authorId;
-            const studentId = session.user.id;
+            const studentId = userData?.id || session.user.id;
 
-            // IDs must be deterministic (least id first, greatest id second) to match the unique index
-            const user1_id = studentId < teacherId ? studentId : teacherId;
-            const user2_id = studentId < teacherId ? teacherId : studentId;
-
-            // Check if conversation already exists
-            const { data: existingConv } = await supabase
-                .from('conversations')
-                .select('*')
-                .or(`and(user1_id.eq.${user1_id},user2_id.eq.${user2_id})`)
-                .maybeSingle();
-
-            let conversationId = null;
-            if (existingConv) {
-                conversationId = existingConv.id;
-            } else {
-                // Create new conversation
-                const { data: newConv, error: createError } = await supabase
-                    .from('conversations')
-                    .insert([{ user1_id, user2_id }])
-                    .select()
-                    .single();
-
-                if (createError) {
-                    console.error('Error creating conversation:', createError);
-                    alert('Lỗi tạo cuộc trò chuyện');
-                    return;
-                }
-                conversationId = newConv.id;
+            const response = await fetch('http://localhost:8080/api/chat/conversations', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user1Id: studentId, user2Id: teacherId })
+            });
+            if (!response.ok) {
+                const body = await response.json().catch(() => ({}));
+                throw new Error(body.message || 'Lỗi tạo cuộc trò chuyện');
             }
+            const conversation = await response.json();
 
             // Call the callback to switch to messages and set the conversation
             if (onSwitchToMessages) {
-                onSwitchToMessages(conversationId, {
+                onSwitchToMessages(conversation.id, {
                     id: teacherId,
                     full_name: post.authorName,
                 });
             }
         } catch (error) {
             console.error('Error in handleMessageTeacher:', error);
-            alert('Có lỗi xảy ra khi mở tin nhắn');
+            alert(error.message || 'Có lỗi xảy ra khi mở tin nhắn');
         }
     };
 

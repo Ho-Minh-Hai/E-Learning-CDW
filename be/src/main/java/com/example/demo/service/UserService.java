@@ -5,6 +5,7 @@ import com.example.demo.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -63,6 +64,13 @@ public class UserService {
                 .build();
 
         return userRepository.save(newUser);
+    }
+
+    public List<User> searchUsers(String query, UUID excludedId) {
+        if (query == null || query.isBlank() || excludedId == null) {
+            return List.of();
+        }
+        return userRepository.findTop5ByIdNotAndFullNameContainingIgnoreCase(excludedId, query.trim());
     }
 
     private String resolveFullName(String fullName, String email) {
