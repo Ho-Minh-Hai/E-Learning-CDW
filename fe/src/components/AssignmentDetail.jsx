@@ -196,25 +196,35 @@ const AssignmentDetail = ({ post, session, userRole, onBack, selectedClass, user
     };
 
     const handleFileChange = async (e) => {
+        console.log('handleFileChange triggered');
         const files = Array.from(e.target.files);
+        console.log('Files selected:', files.length);
         if (!files.length) return;
         setUploading(true);
         const newFiles = [...uploadedFiles];
         for (const file of files) {
             try {
+                console.log('Uploading file:', file.name);
                 const fileExt = file.name.split('.').pop();
                 const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
                 const filePath = `submissions/${post.id}/${session.user.id}/${fileName}`;
+                console.log('File path:', filePath);
                 const { error } = await supabase.storage
-                    .from('submission_files')
+                    .from('assignment_submissions')
                     .upload(filePath, file, { cacheControl: '3600', upsert: false });
-                if (error) throw error;
+                if (error) {
+                    console.error('Upload error:', error);
+                    throw error;
+                }
+                console.log('Upload successful');
                 const { data: { publicUrl } } = supabase.storage
-                    .from('submission_files')
+                    .from('assignment_submissions')
                     .getPublicUrl(filePath);
+                console.log('Public URL:', publicUrl);
                 newFiles.push({ fileUrl: publicUrl, fileName: file.name, fileType: file.type, fileSize: file.size });
             } catch (err) {
-                alert(`Lỗi khi tải lên file ${file.name}`);
+                console.error('Error in handleFileChange:', err);
+                alert(`Lỗi khi tải lên file ${file.name}: ${err.message}`);
             }
         }
         setUploadedFiles(newFiles);
@@ -313,10 +323,10 @@ const AssignmentDetail = ({ post, session, userRole, onBack, selectedClass, user
         if (!window.confirm(`Bạn có chắc muốn xóa file "${file.fileName}"?`)) return;
         
         try {
-            const pathParts = file.fileUrl.split('/public/submission_files/');
+            const pathParts = file.fileUrl.split('/public/assignment_submissions/');
             if (pathParts.length > 1) {
                 const filePath = pathParts[1];
-                const { error } = await supabase.storage.from('submission_files').remove([filePath]);
+                const { error } = await supabase.storage.from('assignment_submissions').remove([filePath]);
                 if (error) console.error('Supabase delete error:', error);
             }
 
