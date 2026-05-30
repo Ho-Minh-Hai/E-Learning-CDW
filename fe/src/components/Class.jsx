@@ -196,7 +196,7 @@ const Class = ({ session, userRole, userData, onSwitchToMessages, classes, setCl
 
                 // Upload to Supabase Storage
                 const { error } = await supabase.storage
-                    .from('post_attachments')
+                    .from('post-files')
                     .upload(filePath, file, {
                         cacheControl: '3600',
                         upsert: false
@@ -208,7 +208,7 @@ const Class = ({ session, userRole, userData, onSwitchToMessages, classes, setCl
 
                 // Get Public URL
                 const { data: { publicUrl } } = supabase.storage
-                    .from('post_attachments')
+                    .from('post-files')
                     .getPublicUrl(filePath);
 
                 newAttachments.push({
