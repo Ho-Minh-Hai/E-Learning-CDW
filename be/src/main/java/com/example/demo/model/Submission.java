@@ -38,7 +38,7 @@ public class Submission {
     @JoinColumn(name = "student_id", insertable = false, updatable = false)
     private User student;
 
-    @OneToMany(fetch = FetchType.LAZY)
+    @OneToMany(fetch = FetchType.EAGER)
     @JoinColumn(name = "submission_id", insertable = false, updatable = false)
     private List<SubmissionFile> files;
 }

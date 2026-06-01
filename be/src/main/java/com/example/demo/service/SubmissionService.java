@@ -120,24 +120,28 @@ public class SubmissionService {
         return "submitted";
     }
 
+    @Transactional
     public List<SubmissionDTO> getSubmissionsByPost(UUID postId) {
         return submissionRepository.findByPostId(postId).stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     public SubmissionDTO getSubmissionByPostAndUser(UUID postId, UUID userId) {
         return submissionRepository.findByPostIdAndStudentId(postId, userId)
                 .map(this::mapToDTO)
                 .orElse(null);
     }
 
+    @Transactional
     public List<SubmissionDTO> getSubmissionsByStudent(UUID studentId) {
         return submissionRepository.findByStudentId(studentId).stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     public SubmissionDTO getSubmissionById(UUID id) {
         return submissionRepository.findById(id).map(this::mapToDTO).orElse(null);
     }
