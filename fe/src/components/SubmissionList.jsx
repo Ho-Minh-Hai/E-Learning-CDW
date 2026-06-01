@@ -103,7 +103,7 @@ const SubmissionList = ({ userRole, session, onBack }) => {
     const handleSubmissionClick = (sub) => {
         setSelectedSubmission(sub);
         setGradeInput(sub.score?.toString() || '');
-        setGradeComment(sub.comment || '');
+        setGradeComment(sub.gradeComment || '');
         setViewMode('grading');
     };
 
@@ -245,7 +245,7 @@ const SubmissionList = ({ userRole, session, onBack }) => {
                                 <div className="form-group">
                                     <label>Nhận xét từ giáo viên</label>
                                     <p className="grade-comment-text" style={{ background: '#f8f9fa', padding: '15px', borderRadius: '8px', borderLeft: '4px solid #dadce0' }}>
-                                        {submissions[0].comment || "Chưa có nhận xét."}
+                                        {submissions[0].gradeComment || "Chưa có nhận xét."}
                                     </p>
                                 </div>
                             </div>
