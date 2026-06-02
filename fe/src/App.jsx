@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './App.css';
-import Sidebar from './components/Sidebar';
-import Header from './components/Header';
+import TopNavbar from './components/TopNavbar';
 import ClassPage from './components/Class';
 import Login from './auth/Login';
 import Chat from './components/Chat';
@@ -18,10 +17,22 @@ function App() {
   const [userData, setUserData] = useState(null);
   const [activeTab, setActiveTab] = useState('Dashboard');
   const [pendingConversation, setPendingConversation] = useState(null);
+
   const [classes, setClasses] = useState([]);
   const [isLoadingClasses, setIsLoadingClasses] = useState(false);
   const [selectedClass, setSelectedClass] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
+
+  // Áp dụng theme lên document root
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'light' ? 'dark' : 'light');
+  };
 
   useEffect(() => {
     // Kiểm tra session hiện tại
@@ -36,7 +47,6 @@ function App() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       setSession(session);
       if (session) {
-        setShowLogin(false);
         fetchUserData(session.user);
         fetchUnreadCount(session.user.id);
       } else {
@@ -135,104 +145,105 @@ function App() {
   }, [session, activeTab]);
 
   return (
-    <div className="dashboard-container">
-      {!session && showLogin && <Login onClose={() => setShowLogin(false)} />}
-      
-      {/* Sidebar based on role */}
-      <Sidebar userRole={userRole} activeTab={activeTab} unreadCount={unreadCount} setActiveTab={(tab) => {
-        // Nếu chưa đăng nhập và cố click vào tab khác, về Dashboard
-        if (!session && tab !== 'Dashboard') {
-          setActiveTab('Dashboard');
-        } else {
-          setActiveTab(tab);
-        }
-      }} />
+    <div className={`dashboard-container ${!session ? 'landing-mode-active' : ''}`}>
+      {session ? (
+        <>
+          <TopNavbar 
+            userRole={userRole} 
+            activeTab={activeTab} 
+            unreadCount={unreadCount} 
+            session={session}
+            userData={userData}
+            onLoginClick={() => setShowLogin(true)}
+            theme={theme}
+            toggleTheme={toggleTheme}
+            setActiveTab={(tab) => {
+              if (!session && tab !== 'Dashboard') {
+                setActiveTab('Dashboard');
+              } else {
+                setActiveTab(tab);
+              }
+            }} 
+          />
 
-      <div className={`main-wrapper ${activeTab === 'Messages' || activeTab === 'Classes' || activeTab === 'Quizzes' || activeTab === 'Statistics' ? 'no-padding' : ''}`}>
-        {activeTab !== 'Messages' && activeTab !== 'Classes' && activeTab !== 'Quizzes' && activeTab !== 'Statistics' && (
-          <Header session={session} userData={userData} onLoginClick={() => setShowLogin(true)} />
-        )}
-
-        {session ? (
-          activeTab === 'Dashboard' ? (
-            userRole === "1" ? (
-              <TeacherDashboard 
+          <div className={`main-wrapper ${activeTab === 'Messages' || activeTab === 'Classes' || activeTab === 'Quizzes' || activeTab === 'Statistics' ? 'no-padding' : ''}`}>
+            {activeTab === 'Dashboard' ? (
+              userRole === "1" ? (
+                <TeacherDashboard 
+                  session={session} 
+                  classes={classes} 
+                  setActiveTab={setActiveTab} 
+                  setSelectedClass={setSelectedClass}
+                  userData={userData}
+                  onProfileUpdate={() => fetchUserData(session.user)}
+                />
+              ) : (
+                <StudentDashboard 
+                  session={session} 
+                  classes={classes} 
+                  setActiveTab={setActiveTab} 
+                  setSelectedClass={setSelectedClass}
+                  userData={userData}
+                  onProfileUpdate={() => fetchUserData(session.user)}
+                />
+              )
+            ) : activeTab === 'Classes' ? (
+              <ClassPage 
                 session={session} 
-                classes={classes} 
-                setActiveTab={setActiveTab} 
-                setSelectedClass={setSelectedClass}
+                userRole={userRole} 
                 userData={userData}
-                onProfileUpdate={() => fetchUserData(session.user)}
+                classes={classes}
+                setClasses={setClasses}
+                selectedClass={selectedClass}
+                setSelectedClass={setSelectedClass}
+                onSwitchToMessages={handleSwitchToMessages}
+              />
+            ) : activeTab === 'Messages' ? (
+              <Chat 
+                session={session} 
+                userData={userData} 
+                pendingConversation={pendingConversation} 
+                refreshUnreadCount={() => fetchUnreadCount(session.user.id)} 
+              />
+            ) : activeTab === 'Quizzes' ? (
+              <EQuizz 
+                session={session} 
+                userRole={userRole} 
+                classes={classes}
+                isLoadingClasses={isLoadingClasses}
+              />
+            ) : activeTab === 'Statistics' ? (
+              <Analytics 
+                session={session}
+                classes={classes}
+                onSwitchToMessages={handleSwitchToMessages}
               />
             ) : (
-              <StudentDashboard 
-                session={session} 
-                classes={classes} 
-                setActiveTab={setActiveTab} 
-                setSelectedClass={setSelectedClass}
-                userData={userData}
-                onProfileUpdate={() => fetchUserData(session.user)}
-              />
-            )
-          ) : activeTab === 'Classes' ? (
-            <ClassPage 
-              session={session} 
-              userRole={userRole} 
-              userData={userData}
-              classes={classes}
-              setClasses={setClasses}
-              selectedClass={selectedClass} //sử dụng lớp học chọn từ Dashboard
-              setSelectedClass={setSelectedClass}
-              onSwitchToMessages={handleSwitchToMessages}
-            />
-          ) : activeTab === 'Messages' ? (
-            <Chat 
-              session={session} 
-              userData={userData} 
-              pendingConversation={pendingConversation} 
-              refreshUnreadCount={() => fetchUnreadCount(session.user.id)} 
-            />
-          ) : activeTab === 'Quizzes' ? (
-            <EQuizz 
-              session={session} 
-              userRole={userRole} 
-              classes={classes}
-              isLoadingClasses={isLoadingClasses}
-            />
-          ) : activeTab === 'Statistics' ? (
-            <Analytics 
-              session={session}
-              classes={classes}
-              onSwitchToMessages={handleSwitchToMessages}
-            />
-          ) : (
-            userRole === "1" ? (
-              <TeacherDashboard 
-                session={session} 
-                classes={classes} 
-                setActiveTab={setActiveTab} 
-                setSelectedClass={setSelectedClass}
-                userData={userData}
-                onProfileUpdate={() => fetchUserData(session.user)}
-              />
-            ) : (
-              <StudentDashboard 
-                session={session} 
-                classes={classes} 
-                setActiveTab={setActiveTab} 
-                setSelectedClass={setSelectedClass}
-                userData={userData}
-                onProfileUpdate={() => fetchUserData(session.user)}
-              />
-            )
-          )
-        ) : (
-          <div style={{ padding: '20px', textAlign: 'center' }}>
-            <h1>Chào mừng bạn!</h1>
-            <p>Vui lòng đăng nhập để sử dụng hệ thống.</p>
+              userRole === "1" ? (
+                <TeacherDashboard 
+                  session={session} 
+                  classes={classes} 
+                  setActiveTab={setActiveTab} 
+                  setSelectedClass={setSelectedClass}
+                  userData={userData}
+                  onProfileUpdate={() => fetchUserData(session.user)}
+                />
+              ) : (
+                <StudentDashboard 
+                  session={session} 
+                  classes={classes} 
+                  setActiveTab={setActiveTab} 
+                  setSelectedClass={setSelectedClass}
+                  userData={userData}
+                  onProfileUpdate={() => fetchUserData(session.user)}
+                />
+              )
+            )}
           </div>
-        )}
-      </div>
+        </>
+      ) : (
+        <Login theme={theme} toggleTheme={toggleTheme} />
+      )}
     </div>
   );
 }

@@ -616,12 +616,25 @@ const Class = ({ session, userRole, userData, onSwitchToMessages, classes, setCl
                                                     </div>
                                                 )}
 
-                                                {post.type === 'assignment' && (
-                                                    <div className="post-assignment-cta">
-                                                        <FontAwesomeIcon icon={faTasks} style={{ marginRight: '6px' }} />
-                                                        Xem chi tiết bài tập
-                                                    </div>
-                                                )}
+                                                {/* Call to Action indicator */}
+                                                <div className="post-item-cta">
+                                                    {post.type === 'assignment' ? (
+                                                        <>
+                                                            <FontAwesomeIcon icon={faTasks} style={{ marginRight: '6px' }} />
+                                                            <span>Xem chi tiết & Nộp bài tập ➔</span>
+                                                        </>
+                                                    ) : post.type === 'material' ? (
+                                                        <>
+                                                            <FontAwesomeIcon icon={faFileAlt} style={{ marginRight: '6px' }} />
+                                                            <span>Xem & tải tài liệu xuống ➔</span>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <FontAwesomeIcon icon={faBullhorn} style={{ marginRight: '6px' }} />
+                                                            <span>Xem thảo luận & bình luận lớp học ➔</span>
+                                                        </>
+                                                    )}
+                                                </div>
                                                 
                                                 {post.attachments && post.attachments.length > 0 && post.type !== 'assignment' && (
                                                     <div className="post-attachments" style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>

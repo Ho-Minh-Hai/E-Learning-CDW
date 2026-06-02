@@ -34,6 +34,13 @@ const StudentDashboard = ({ session, classes, setActiveTab, setSelectedClass, us
     }, [session]);
 
     useEffect(() => {
+        setEditData({
+            full_name: userData?.full_name || userData?.fullName || '',
+            school: userData?.school || ''
+        });
+    }, [userData]);
+
+    useEffect(() => {
         const fetchClassData = async () => {
             if (!classes || classes.length === 0) return;
             try {
@@ -165,7 +172,18 @@ const StudentDashboard = ({ session, classes, setActiveTab, setSelectedClass, us
             const data = await res.json();
             if (!res.ok) throw new Error(data.error?.message || 'Upload failed');
             const imageUrl = data.secure_url;
-            await supabase.from('users').update({ avatar_url: imageUrl }).eq('id', session.user.id);
+
+            const updateResponse = await fetch(`http://localhost:8080/api/auth/users/${session.user.id}/profile`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ avatarUrl: imageUrl })
+            });
+
+            if (!updateResponse.ok) {
+                const errorData = await updateResponse.json().catch(() => ({}));
+                throw new Error(errorData.message || 'Update avatar failed');
+            }
+
             await supabase.auth.updateUser({ data: { avatar_url: imageUrl } });
             if (onProfileUpdate) onProfileUpdate();
         } catch (error) { console.error(error); } finally { setUploading(false); }
@@ -174,7 +192,22 @@ const StudentDashboard = ({ session, classes, setActiveTab, setSelectedClass, us
     const handleSaveProfile = async () => {
         setIsSaving(true);
         try {
-            await supabase.from('users').update({ full_name: editData.full_name, school: editData.school }).eq('id', session.user.id);
+            const updateResponse = await fetch(`http://localhost:8080/api/auth/users/${session.user.id}/profile`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    fullName: editData.full_name,
+                    school: editData.school
+                })
+            });
+
+            if (!updateResponse.ok) {
+                const errorData = await updateResponse.json().catch(() => ({}));
+                throw new Error(errorData.message || 'Update profile failed');
+            }
+
+            await supabase.auth.updateUser({ data: { full_name: editData.full_name } });
+
             setIsEditing(false);
             if (onProfileUpdate) onProfileUpdate();
         } catch (error) { console.error(error); } finally { setIsSaving(false); }

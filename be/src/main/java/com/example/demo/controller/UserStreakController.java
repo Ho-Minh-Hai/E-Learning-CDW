@@ -1,6 +1,5 @@
 package com.example.demo.controller;
 
-import com.example.demo.model.UserStreak;
 import com.example.demo.service.UserStreakService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

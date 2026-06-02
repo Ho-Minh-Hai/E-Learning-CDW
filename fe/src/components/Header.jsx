@@ -113,14 +113,18 @@ const Header = ({ session, userData, onLoginClick }) => {
                 ) : (
                     <button 
                         onClick={onLoginClick}
+                        className="login-btn-custom"
                         style={{ 
-                            background: '#dee2e6', 
-                            color: '#343a40', 
+                            background: 'linear-gradient(135deg, var(--primary), var(--primary-dark))', 
+                            color: '#ffffff', 
                             border: 'none', 
-                            padding: '8px 16px', 
-                            borderRadius: '5px', 
+                            padding: '10px 22px', 
+                            borderRadius: 'var(--border-radius-sm)', 
                             cursor: 'pointer',
-                            fontWeight: 'bold'
+                            fontWeight: '700',
+                            fontFamily: 'var(--font-body)',
+                            boxShadow: 'var(--shadow)',
+                            transition: 'var(--transition)'
                         }}
                     >
                         Đăng nhập
