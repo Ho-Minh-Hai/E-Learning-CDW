@@ -402,6 +402,26 @@
 .class-detail-body {
   width: 100%;
   animation: fadeIn 0.3s ease-out;
+  overflow-y: auto;
+  max-height: calc(100vh - 200px);
+  padding-right: 8px;
+}
+
+.class-detail-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.class-detail-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.class-detail-body::-webkit-scrollbar-thumb {
+  background: rgba(15, 118, 110, 0.3);
+  border-radius: 4px;
+}
+
+.class-detail-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(15, 118, 110, 0.5);
 }
 
 /* ==========================================================================
