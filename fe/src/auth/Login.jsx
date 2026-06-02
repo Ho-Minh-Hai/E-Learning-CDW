@@ -5,13 +5,15 @@ import { faSun, faMoon, faEnvelope, faLock, faGraduationCap } from '@fortawesome
 import logoImg from '../assets/img/logo.jpg';
 import './Login.css';
 
+const getAppRedirectUrl = () => `${window.location.origin}${window.location.pathname}`;
+
 const Login = ({ theme, toggleTheme }) => {
     const [isLogin, setIsLogin] = useState(true);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-    const redirectUrl = window.location.href;
+    const redirectUrl = getAppRedirectUrl();
 
     const handleAuthentication = async (e) => {
         e.preventDefault();
