@@ -7,7 +7,6 @@ import {
     faChartBar,
     faFont,
     faEllipsisH,
-    faCamera,
     faBullseye as faBullseyeIcon
 } from '@fortawesome/free-solid-svg-icons';
 import { UNIVERSITIES } from '../constants/universities';
@@ -34,10 +33,16 @@ const StudentDashboard = ({ session, classes, setActiveTab, setSelectedClass, us
     }, [session]);
 
     useEffect(() => {
+        setEditData({
+            full_name: userData?.full_name || userData?.fullName || '',
+            school: userData?.school || ''
+        });
+    }, [userData]);
+
+    useEffect(() => {
         const fetchClassData = async () => {
             if (!classes || classes.length === 0) return;
             try {
-                // Chỉ lấy 1 lần cho mỗi lớp, hoặc lý tưởng là 1 endpoint cho tất cả
                 const assignmentPromises = classes.map(cls => 
                     fetch(`http://localhost:8080/api/posts/class/${cls.id}`).then(res => res.json())
                 );
@@ -135,24 +140,6 @@ const StudentDashboard = ({ session, classes, setActiveTab, setSelectedClass, us
 
     const stats = calculateStats();
 
-    const getClassProgress = (classId) => {
-        const classAssignments = allAssignments.filter(a => a.classId === classId);
-        const classQuizzes = allQuizzes.filter(q => q.classId === classId);
-        
-        const totalItems = classAssignments.length + classQuizzes.length;
-        if (totalItems === 0) return { completed: 0, total: 0, percentage: 0 };
-
-        const completedAssgn = classAssignments.filter(a => submissions.some(s => s.postId === a.id)).length;
-        const completedQuiz = classQuizzes.filter(q => quizAttempts.some(qa => qa.quizId === q.id)).length;
-
-        const totalCompleted = completedAssgn + completedQuiz;
-        return {
-            completed: totalCompleted,
-            total: totalItems,
-            percentage: Math.round((totalCompleted / totalItems) * 100)
-        };
-    };
-
     const handleAvatarUpload = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -165,7 +152,18 @@ const StudentDashboard = ({ session, classes, setActiveTab, setSelectedClass, us
             const data = await res.json();
             if (!res.ok) throw new Error(data.error?.message || 'Upload failed');
             const imageUrl = data.secure_url;
-            await supabase.from('users').update({ avatar_url: imageUrl }).eq('id', session.user.id);
+
+            const updateResponse = await fetch(`http://localhost:8080/api/auth/users/${session.user.id}/profile`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ avatarUrl: imageUrl })
+            });
+
+            if (!updateResponse.ok) {
+                const errorData = await updateResponse.json().catch(() => ({}));
+                throw new Error(errorData.message || 'Update avatar failed');
+            }
+
             await supabase.auth.updateUser({ data: { avatar_url: imageUrl } });
             if (onProfileUpdate) onProfileUpdate();
         } catch (error) { console.error(error); } finally { setUploading(false); }
@@ -174,13 +172,27 @@ const StudentDashboard = ({ session, classes, setActiveTab, setSelectedClass, us
     const handleSaveProfile = async () => {
         setIsSaving(true);
         try {
-            await supabase.from('users').update({ full_name: editData.full_name, school: editData.school }).eq('id', session.user.id);
+            const updateResponse = await fetch(`http://localhost:8080/api/auth/users/${session.user.id}/profile`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    fullName: editData.full_name,
+                    school: editData.school
+                })
+            });
+
+            if (!updateResponse.ok) {
+                const errorData = await updateResponse.json().catch(() => ({}));
+                throw new Error(errorData.message || 'Update profile failed');
+            }
+
+            await supabase.auth.updateUser({ data: { full_name: editData.full_name } });
+
             setIsEditing(false);
             if (onProfileUpdate) onProfileUpdate();
         } catch (error) { console.error(error); } finally { setIsSaving(false); }
     };
 
-    // Lịch biểu
     const daysInMonth = (y, m) => new Date(y, m + 1, 0).getDate();
     const firstDayOfMonth = (y, m) => new Date(y, m, 1).getDay();
     const handlePrevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
@@ -193,7 +205,6 @@ const StudentDashboard = ({ session, classes, setActiveTab, setSelectedClass, us
 
     const isSameDay = (d1, d2) => d1 && d2 && new Date(d1).toDateString() === new Date(d2).toDateString();
     
-    // Kiểm tra xem ngày có deadline hay không
     const hasDeadlineOnDate = (date) => {
         return allAssignments.some(a => isSameDay(a.dueAt, date)) || 
                allQuizzes.some(q => isSameDay(q.deadline, date));
@@ -207,7 +218,6 @@ const StudentDashboard = ({ session, classes, setActiveTab, setSelectedClass, us
         const hasDeadline = hasDeadlineOnDate(dateObj);
         days.push(<span key={i} className={`day-cell ${isActive ? 'active' : ''} ${hasDeadline ? 'has-deadline' : ''}`} onClick={() => setSelectedDate(dateObj)} style={{ cursor: 'pointer' }}>{i}</span>);
     }
-    
     const scheduleItems = [];
     allAssignments.forEach(a => { if (isSameDay(a.dueAt, selectedDate)) scheduleItems.push({ id: a.id, title: a.title, time: new Date(a.dueAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}), color: 'blue' }); });
     allQuizzes.forEach(q => { if (isSameDay(q.deadline, selectedDate)) scheduleItems.push({ id: q.id, title: q.title, time: new Date(q.deadline).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}), color: 'purple' }); });
@@ -215,74 +225,122 @@ const StudentDashboard = ({ session, classes, setActiveTab, setSelectedClass, us
     const pendingAssignments = allAssignments.filter(a => !submissions.some(s => s.postId === a.id));
 
     return (
-        <main className="main-content-area">
-            <div className="center-content">
-                <section className="overview">
-                    <div className="section-header"><h2>Overview</h2></div>
-                    <div className="overview-cards">
-                        <div className="overview-card"><div className="overview-card-icon"><FontAwesomeIcon icon={faBookOpen} /></div><h3>{stats.totalClasses}</h3><p>Lớp học tham gia</p></div>
-                        <div className="overview-card"><div className="overview-card-icon"><FontAwesomeIcon icon={faGraduationCap} /></div><h3>{stats.totalCompleted}</h3><p>Bài tập hoàn thành</p></div>
-                        <div className="overview-card"><div className="overview-card-icon"><FontAwesomeIcon icon={faBullseyeIcon} /></div><h3>{stats.avgScore}</h3><p>Điểm trung bình</p></div>
-                        <div className="overview-card"><div className="overview-card-icon"><FontAwesomeIcon icon={faChartBar} /></div><h3>{stats.classification}</h3><p>Xếp loại học tập</p></div>
+        <div className="app-dashboard-grid">
+            {/* ROW 1: Hero & Profile */}
+            <div className="dashboard-row-split">
+                {/* Hero Banner (2/3 width) */}
+                <div className="dashboard-col-2-3">
+                    <div className="welcome-hero-card">
+                        <h2>Chào mừng trở lại, {userData?.full_name || userData?.fullName || 'học viên'}!</h2>
+                        <p>Hôm nay là một ngày tuyệt vời để tiếp thu kiến thức mới. Hãy tiếp tục duy trì tiến độ học tập và rèn luyện của bạn nhé!</p>
                     </div>
-                </section>
+                </div>
 
-                <section className="courses">
-                    <div className="section-header"><h2>Classes</h2></div>
-                    <div className="courses-cards">
-                        {classes?.length > 0 ? classes.map((cls, idx) => {
-                            const progress = getClassProgress(cls.id);
-                            return (
-                            <div key={cls.id} className={`course-card ${['blue', 'yellow', 'green', 'purple', 'red'][idx % 5]}`} onClick={() => { setSelectedClass(cls); setActiveTab('Classes'); }} style={{ cursor: 'pointer' }}>
-                                <div className="course-icon">{cls.teacherAvatar ? <img src={cls.teacherAvatar} alt="t" style={{ width: '100%', height: '100%', borderRadius: '50%' }} /> : <FontAwesomeIcon icon={faGraduationCap} />}</div>
-                                <h4>{cls.name}</h4><span>▷ {cls.teacherName || "Giảng viên"}</span>
-                                <div className="course-progress">
-                                    <span className="progress-info">{progress.completed}/{progress.total} bài tập</span>
-                                    <div className="progress-bar-bg"><div className="progress-bar-fill" style={{ width: `${progress.percentage}%` }}></div></div>
-                                </div>
+                {/* Profile Hub (1/3 width) */}
+                <div className="dashboard-col-1-3">
+                    <div className="profile-hub-card">
+                        <div className="profile-hub-avatar-wrapper">
+                            <img src={userData?.avatar_url || userData?.avatarUrl} alt="A" className="profile-hub-avatar" />
+                            <input type="file" id="profile-hub-avatar-upload" accept="image/*" onChange={handleAvatarUpload} disabled={uploading} />
+                        </div>
+                        <div className="profile-hub-details">
+                            <div className="profile-hub-role-badge">Sinh viên</div>
+                            {isEditing ? (
+                                <input className="edit-input" style={{ padding: '6px 10px', fontSize: '13px', marginTop: '4px' }} value={editData.full_name} onChange={(e) => setEditData({...editData, full_name: e.target.value})} />
+                            ) : (
+                                <h3 className="profile-hub-name">{userData?.full_name || userData?.fullName || 'User Name'}</h3>
+                            )}
+                            <p className="profile-hub-email">{userData?.email}</p>
+                            
+                            {isEditing ? (
+                                <select className="edit-input" style={{ padding: '6px 10px', fontSize: '13px', marginTop: '4px' }} value={editData.school} onChange={(e) => setEditData({...editData, school: e.target.value})}>
+                                    <option value="">Chọn trường đại học</option>
+                                    {UNIVERSITIES.map((uni, idx) => <option key={idx} value={uni}>{uni}</option>)}
+                                </select>
+                            ) : (
+                                <p className="profile-hub-school">🏫 {userData?.school || 'Chưa cập nhật trường'}</p>
+                            )}
+
+                            <div className="profile-hub-actions">
+                                <button onClick={() => { if (isEditing) handleSaveProfile(); else setIsEditing(true); }} disabled={isSaving} className="profile-hub-btn edit">
+                                    {isSaving ? 'Đang lưu...' : (isEditing ? 'Lưu' : 'Chỉnh sửa')}
+                                </button>
+                                {isEditing && <button onClick={() => setIsEditing(false)} className="profile-hub-btn cancel">Hủy</button>}
                             </div>
-                        )}) : <p>Bạn chưa tham gia lớp học nào.</p>}
+                        </div>
                     </div>
-                </section>
-
-                <section className="assignments">
-                    <div className="section-header"><h2>Assignments</h2></div>
-                    <div className="assignments-list">
-                        {pendingAssignments.length > 0 ? pendingAssignments.map(a => (
-                            <div className="assignment-item" key={a.id}><div className="assignment-info"><div className="assignment-icon"><FontAwesomeIcon icon={faFont} /></div><div className="assignment-text"><h5>{a.title}</h5><p>{a.className}</p></div></div><div className="assignment-grade">--/10</div><div className="assignment-status">Upcoming</div></div>
-                        )) : <p style={{ color: '#666' }}>Không có bài tập nào chưa làm.</p>}
-                    </div>
-                </section>
+                </div>
             </div>
 
-            <aside className="right-panel-in-main">
-                <div className="calendar-container">
-                    <div className="calendar-header"><button onClick={handlePrevMonth}>&lt;</button><span>{monthNames[m]} {y}</span><button onClick={handleNextMonth}>&gt;</button></div>
-                    <div className="calendar-grid"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>{days}</div>
-                </div>
-
-                <div className="schedule-container">
-                    <h4>Schedule</h4>
-                    {scheduleItems.length > 0 ? scheduleItems.map((item, idx) => (
-                        <div className={`schedule-item ${item.color}`} key={`${item.id}-${idx}`}><div className="schedule-header"><h5>{item.title}</h5><FontAwesomeIcon icon={faEllipsisH} className="more-options" /></div><p>{item.time}</p></div>
-                    )) : <p style={{ color: '#666', marginTop: '10px' }}>Không có deadline</p>}
-                </div>
-
-                <div className="user-profile-card">
-                    <div className="avatar-wrapper">
-                        <img src={userData?.avatar_url || userData?.avatarUrl} alt="A" className={`profile-avatar ${uploading ? 'uploading' : ''}`} />
-                        <label htmlFor="avatar-upload" className="avatar-hover-overlay"><FontAwesomeIcon icon={faCamera} /></label>
-                        <input type="file" id="avatar-upload" accept="image/*" onChange={handleAvatarUpload} style={{ display: 'none' }} disabled={uploading} />
+            {/* ROW 2: Overview Metrics */}
+            <section className="overview">
+                <div className="section-header"><h2>Tổng quan chỉ số</h2></div>
+                <div className="overview-cards">
+                    <div className="overview-card">
+                        <div className="overview-card-icon"><FontAwesomeIcon icon={faBookOpen} /></div>
+                        <div className="overview-card-info">
+                            <h3>{stats.totalClasses}</h3>
+                            <p>Lớp học</p>
+                        </div>
                     </div>
-                    <div className="profile-info-item"><span className="info-label">Tên:</span>{isEditing ? <input className="edit-input" value={editData.full_name} onChange={(e) => setEditData({...editData, full_name: e.target.value})} /> : <p>{userData?.full_name || userData?.fullName || 'User Name'}</p>}</div>
-                    <div className="profile-info-item"><span className="info-label">Email:</span><p className="profile-email">{userData?.email}</p></div>
-                    <div className="profile-info-item"><span className="info-label">Chức vụ:</span><span className="profile-role">Sinh viên</span></div>
-                    <div className="profile-info-item"><span className="info-label">Trường đại học:</span>{isEditing ? <select className="edit-input" value={editData.school} onChange={(e) => setEditData({...editData, school: e.target.value})}><option value="">Chọn trường đại học</option>{UNIVERSITIES.map((uni, idx) => <option key={idx} value={uni}>{uni}</option>)}</select> : <p className="profile-school">{userData?.school || 'Chưa cập nhật'}</p>}</div>
-                    <button onClick={() => { if (isEditing) handleSaveProfile(); else setIsEditing(true); }} disabled={isSaving} className="save-profile-btn">{isSaving ? 'Đang lưu...' : (isEditing ? 'Lưu thông tin' : 'Chỉnh sửa')}</button>
-                    {isEditing && <button onClick={() => setIsEditing(false)} className="cancel-edit-btn">Hủy</button>}
+                    <div className="overview-card">
+                        <div className="overview-card-icon"><FontAwesomeIcon icon={faGraduationCap} /></div>
+                        <div className="overview-card-info">
+                            <h3>{stats.totalCompleted}</h3>
+                            <p>Bài nộp</p>
+                        </div>
+                    </div>
+                    <div className="overview-card">
+                        <div className="overview-card-icon"><FontAwesomeIcon icon={faBullseyeIcon} /></div>
+                        <div className="overview-card-info">
+                            <h3>{stats.avgScore}</h3>
+                            <p>ĐTB học tập</p>
+                        </div>
+                    </div>
+                    <div className="overview-card">
+                        <div className="overview-card-icon"><FontAwesomeIcon icon={faChartBar} /></div>
+                        <div className="overview-card-info">
+                            <h3>{stats.classification}</h3>
+                            <p>Xếp loại học</p>
+                        </div>
+                    </div>
                 </div>
-            </aside>
-        </main>
+            </section>
+
+            {/* ROW 3: Assignments List & Planner */}
+            <div className="dashboard-row-split">
+                {/* Assignments Tracker (1/2 width) */}
+                <div className="dashboard-col-1-2">
+                    <section className="assignments" style={{ height: '100%' }}>
+                        <div className="section-header"><h2>Danh sách Bài tập (Assignments)</h2></div>
+                        <div className="assignments-list">
+                            {pendingAssignments.length > 0 ? pendingAssignments.map(a => (
+                                <div className="assignment-item" key={a.id}><div className="assignment-info"><div className="assignment-icon"><FontAwesomeIcon icon={faFont} /></div><div className="assignment-text"><h5>{a.title}</h5><p>{a.className}</p></div></div><div className="assignment-grade">--/10</div><div className="assignment-status">Sắp đến hạn</div></div>
+                            )) : <p style={{ color: '#666', padding: '16px 0' }}>Không có bài tập nào chưa làm.</p>}
+                        </div>
+                    </section>
+                </div>
+
+                {/* Calendar & Schedule Planner (1/2 width) */}
+                <div className="dashboard-col-1-2">
+                    <div className="calendar-planner-card">
+                        <div className="planner-calendar-side">
+                            <div className="calendar-header"><button onClick={handlePrevMonth}>&lt;</button><span>{monthNames[m]} {y}</span><button onClick={handleNextMonth}>&gt;</button></div>
+                            <div className="calendar-grid"><span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span>{days}</div>
+                        </div>
+                        
+                        <div className="planner-schedule-side">
+                            <div className="schedule-container">
+                                <h4>Kế hoạch thời gian (Schedule)</h4>
+                                {scheduleItems.length > 0 ? scheduleItems.map((item, idx) => (
+                                    <div className={`schedule-item ${item.color}`} key={`${item.id}-${idx}`}><div className="schedule-header"><h5>{item.title}</h5><FontAwesomeIcon icon={faEllipsisH} className="more-options" /></div><p>{item.time}</p></div>
+                                )) : <p style={{ color: '#666', marginTop: '10px' }}>Không có sự kiện hoặc deadline trong ngày được chọn</p>}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     );
 };
 

@@ -16,66 +16,73 @@ const Sidebar = ({ userRole, activeTab, setActiveTab, unreadCount }) => {
 
     return (
         <aside className="sidebar">
-            <div className="logo" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {/* Logo */}
+            <div className="logo" onClick={() => setActiveTab('Dashboard')}>
                 <img 
                     src={logoImg} 
                     alt="Logo" 
-                    style={{ width: '30px', height: '30px', borderRadius: '4px' }} 
+                    style={{ width: '34px', height: '34px', borderRadius: '8px' }} 
                 />
-                E-Learning
+                <span className="logo-text">E-Learning</span>
             </div>
             
-            <nav className="menu">
+            {/* Sidebar Menu */}
+            <div className="sidebar-menu">
                 <div 
-                    className={`menu-item ${activeTab === 'Dashboard' ? 'active' : ''}`}
+                    className={`sidebar-item ${activeTab === 'Dashboard' ? 'active' : ''}`}
                     onClick={() => setActiveTab('Dashboard')}
-                    style={{ cursor: 'pointer' }}
                 >
-                    <span className="icon"><FontAwesomeIcon icon={faThLarge} /></span> Dashboard
+                    <span className="icon"><FontAwesomeIcon icon={faThLarge} /></span>
+                    <span className="label">Dashboard</span>
                 </div>
+
                 <div 
-                    className={`menu-item ${activeTab === 'Classes' ? 'active' : ''}`}
+                    className={`sidebar-item ${activeTab === 'Classes' ? 'active' : ''}`}
                     onClick={() => setActiveTab('Classes')}
-                    style={{ cursor: 'pointer' }}
                 >
-                    <span className="icon"><FontAwesomeIcon icon={faLayerGroup} /></span> Classes
+                    <span className="icon"><FontAwesomeIcon icon={faLayerGroup} /></span>
+                    <span className="label">Classes</span>
                 </div>
+
                 <div 
-                    className={`menu-item ${activeTab === 'Quizzes' ? 'active' : ''}`}
+                    className={`sidebar-item ${activeTab === 'Quizzes' ? 'active' : ''}`}
                     onClick={() => setActiveTab('Quizzes')}
-                    style={{ cursor: 'pointer' }}
                 >
-                    <span className="icon"><FontAwesomeIcon icon={faQuestionCircle} /></span> Quizzes
+                    <span className="icon"><FontAwesomeIcon icon={faQuestionCircle} /></span>
+                    <span className="label">Quizzes</span>
                 </div>
+
                 {isTeacher && (
                     <div 
-                        className={`menu-item ${activeTab === 'Statistics' ? 'active' : ''}`}
+                        className={`sidebar-item ${activeTab === 'Statistics' ? 'active' : ''}`}
                         onClick={() => setActiveTab('Statistics')}
-                        style={{ cursor: 'pointer' }}
                     >
-                        <span className="icon"><FontAwesomeIcon icon={faChartLine} /></span> Statistics
+                        <span className="icon"><FontAwesomeIcon icon={faChartLine} /></span>
+                        <span className="label">Statistics</span>
                     </div>
                 )}
+
                 <div 
-                    className={`menu-item ${activeTab === 'Messages' ? 'active' : ''}`}
+                    className={`sidebar-item ${activeTab === 'Messages' ? 'active' : ''}`}
                     onClick={() => setActiveTab('Messages')}
-                    style={{ cursor: 'pointer' }}
                 >
                     <span className="icon"><FontAwesomeIcon icon={faEnvelope} /></span> 
-                    Messages 
+                    <span className="label">Messages</span>
                     {unreadCount > 0 && (
-                        <span className="unread-badge">{unreadCount}</span>
+                        <span className="unread-badge-sidebar">{unreadCount}</span>
                     )}
                 </div>
-            </nav>
+            </div>
 
+            {/* Sidebar Footer */}
             <div className="sidebar-footer">
-                <div className="menu-item">
-                    <span className="icon"><FontAwesomeIcon icon={faCog} /></span> Settings
+                <div className="sidebar-item" style={{ cursor: 'pointer' }}>
+                    <span className="icon"><FontAwesomeIcon icon={faCog} /></span>
+                    <span className="label">Settings</span>
                 </div>
             </div>
         </aside>
     );
-}
+};
 
 export default Sidebar;

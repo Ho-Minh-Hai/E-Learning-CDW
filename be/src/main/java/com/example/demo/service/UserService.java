@@ -73,6 +73,34 @@ public class UserService {
         return userRepository.findTop5ByIdNotAndFullNameContainingIgnoreCase(excludedId, query.trim());
     }
 
+    public User updateUserProfile(UUID id, String fullName, String school, String avatarUrl) {
+        if (id == null) {
+            throw new IllegalArgumentException("Thiếu ID người dùng.");
+        }
+
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người dùng với ID: " + id));
+
+        if (fullName != null) {
+            if (fullName.isBlank()) {
+                throw new IllegalArgumentException("Tên người dùng không được để trống.");
+            }
+            user.setFullName(fullName.trim());
+        }
+
+        if (school != null) {
+            String trimmedSchool = school.trim();
+            user.setSchool(trimmedSchool.isEmpty() ? null : trimmedSchool);
+        }
+
+        if (avatarUrl != null) {
+            String trimmedAvatarUrl = avatarUrl.trim();
+            user.setAvatarUrl(trimmedAvatarUrl.isEmpty() ? null : trimmedAvatarUrl);
+        }
+
+        return userRepository.save(user);
+    }
+
     private String resolveFullName(String fullName, String email) {
         if (fullName != null && !fullName.isBlank()) {
             return fullName.trim();

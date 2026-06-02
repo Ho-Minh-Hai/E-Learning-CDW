@@ -1,12 +1,26 @@
 import React, { useState, useEffect } from 'react';
+import logoImg from '../assets/img/logo.jpg';
 import userAvatar from '../assets/img/user.jpg';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faFire, faSun, faMoon } from '@fortawesome/free-solid-svg-icons';
+import { 
+    faThLarge, 
+    faChartLine, 
+    faQuestionCircle, 
+    faEnvelope, 
+    faCog,
+    faLayerGroup,
+    faFire,
+    faSun,
+    faMoon
+} from '@fortawesome/free-solid-svg-icons';
 import { supabase } from '../supabaseClient';
 
-const Header = ({ session, userData, onLoginClick, theme, toggleTheme }) => {
+const TopNavbar = ({ userRole, activeTab, setActiveTab, unreadCount, session, userData, onLoginClick, theme, toggleTheme }) => {
+    // role "0" là Student, "1" là Teacher
+    const isTeacher = userRole === "1";
     const userDefaultAvatar = userData?.avatarUrl || session?.user?.user_metadata?.avatar_url || userAvatar;
     const userName = userData?.fullName || session?.user?.user_metadata?.full_name || 'Bạn';
+    
     const [streak, setStreak] = useState(0);
     const [isActiveToday, setIsActiveToday] = useState(false);
 
@@ -88,9 +102,65 @@ const Header = ({ session, userData, onLoginClick, theme, toggleTheme }) => {
     };
 
     return (
-        <header className="header">
-            <h1>{session ? `Chào, ${userName}!` : ''}</h1>
-            <div className="header-right">
+        <header className="top-navbar">
+            {/* Left branding */}
+            <div className="logo" style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }} onClick={() => setActiveTab('Dashboard')}>
+                <img 
+                    src={logoImg} 
+                    alt="Logo" 
+                    style={{ width: '34px', height: '34px', borderRadius: '8px' }} 
+                />
+                <span className="logo-text">E-Learning</span>
+            </div>
+
+            {/* Middle navigation menu */}
+            {session && (
+                <nav className="nav-menu">
+                    <div 
+                        className={`nav-menu-item ${activeTab === 'Dashboard' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('Dashboard')}
+                    >
+                        <span className="icon"><FontAwesomeIcon icon={faThLarge} /></span>
+                        <span className="label">Dashboard</span>
+                    </div>
+                    <div 
+                        className={`nav-menu-item ${activeTab === 'Classes' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('Classes')}
+                    >
+                        <span className="icon"><FontAwesomeIcon icon={faLayerGroup} /></span>
+                        <span className="label">Classes</span>
+                    </div>
+                    <div 
+                        className={`nav-menu-item ${activeTab === 'Quizzes' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('Quizzes')}
+                    >
+                        <span className="icon"><FontAwesomeIcon icon={faQuestionCircle} /></span>
+                        <span className="label">Quizzes</span>
+                    </div>
+                    {isTeacher && (
+                        <div 
+                            className={`nav-menu-item ${activeTab === 'Statistics' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('Statistics')}
+                        >
+                            <span className="icon"><FontAwesomeIcon icon={faChartLine} /></span>
+                            <span className="label">Statistics</span>
+                        </div>
+                    )}
+                    <div 
+                        className={`nav-menu-item ${activeTab === 'Messages' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('Messages')}
+                    >
+                        <span className="icon"><FontAwesomeIcon icon={faEnvelope} /></span>
+                        <span className="label">Messages</span>
+                        {unreadCount > 0 && (
+                            <span className="unread-badge-inline">{unreadCount}</span>
+                        )}
+                    </div>
+                </nav>
+            )}
+
+            {/* Right widgets */}
+            <div className="navbar-right">
                 {session && (
                     <span 
                         className="streak-widget" 
@@ -147,4 +217,4 @@ const Header = ({ session, userData, onLoginClick, theme, toggleTheme }) => {
     );
 };
 
-export default Header;
+export default TopNavbar;

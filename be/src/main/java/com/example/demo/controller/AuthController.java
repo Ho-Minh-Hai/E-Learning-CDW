@@ -49,6 +49,23 @@ public class AuthController {
         return ResponseEntity.ok(users);
     }
 
+    @PutMapping("/users/{id}/profile")
+    public ResponseEntity<?> updateProfile(
+            @PathVariable UUID id,
+            @RequestBody UpdateProfileRequest request) {
+        try {
+            User user = userService.updateUserProfile(
+                    id,
+                    request.getFullName(),
+                    request.getSchool(),
+                    request.getAvatarUrl()
+            );
+            return ResponseEntity.ok(user);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Lỗi cập nhật thông tin: " + e.getMessage()));
+        }
+    }
+
     public record SearchUserResponse(UUID id, String fullName, String avatarUrl, String email) {
     }
 
@@ -59,5 +76,12 @@ public class AuthController {
         private String fullName;
         private String avatarUrl;
         private java.time.OffsetDateTime lastSignInAt;
+    }
+
+    @Data
+    public static class UpdateProfileRequest {
+        private String fullName;
+        private String school;
+        private String avatarUrl;
     }
 }
