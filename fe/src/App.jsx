@@ -10,12 +10,27 @@ import TeacherDashboard from './components/TeacherDashboard';
 import StudentDashboard from './components/StudentDashboard';
 import { supabase } from './supabaseClient';
 
+const getUrlNavigation = () => {
+  const params = new URLSearchParams(window.location.search);
+  const tab = params.get('tab');
+  const allowedTabs = ['Dashboard', 'Classes', 'Messages', 'Quizzes', 'Statistics'];
+
+  return {
+    tab: allowedTabs.includes(tab) ? tab : null,
+    id: params.get('id')
+  };
+};
+
 function App() {
   const [session, setSession] = useState(null);
   const [showLogin, setShowLogin] = useState(false);
   const [userRole, setUserRole] = useState(null);
   const [userData, setUserData] = useState(null);
-  const [activeTab, setActiveTab] = useState('Dashboard');
+  const [activeTab, setActiveTab] = useState(() => getUrlNavigation().tab || 'Dashboard');
+  const [targetQuizId, setTargetQuizId] = useState(() => {
+    const navigation = getUrlNavigation();
+    return navigation.tab === 'Quizzes' ? navigation.id : null;
+  });
   const [pendingConversation, setPendingConversation] = useState(null);
 
   const [classes, setClasses] = useState([]);
@@ -137,12 +152,29 @@ function App() {
     setActiveTab('Messages');
   };
 
+  const handleSetActiveTab = (tab) => {
+    if (!session && tab !== 'Dashboard') {
+      setActiveTab('Dashboard');
+      return;
+    }
+
+    if (tab !== 'Quizzes') {
+      setTargetQuizId(null);
+    }
+
+    setActiveTab(tab);
+  };
+
   // Kiểm tra và buộc redirect về Dashboard nếu chưa đăng nhập
   useEffect(() => {
-    if (!session && activeTab !== 'Dashboard') {
-      setActiveTab('Dashboard');
+    if (!session) return;
+
+    const navigation = getUrlNavigation();
+    if (navigation.tab) {
+      setActiveTab(navigation.tab);
+      setTargetQuizId(navigation.tab === 'Quizzes' ? navigation.id : null);
     }
-  }, [session, activeTab]);
+  }, [session]);
 
   return (
     <div className={`dashboard-container ${!session ? 'landing-mode-active' : ''}`}>
@@ -157,13 +189,7 @@ function App() {
             onLoginClick={() => setShowLogin(true)}
             theme={theme}
             toggleTheme={toggleTheme}
-            setActiveTab={(tab) => {
-              if (!session && tab !== 'Dashboard') {
-                setActiveTab('Dashboard');
-              } else {
-                setActiveTab(tab);
-              }
-            }} 
+            setActiveTab={handleSetActiveTab} 
           />
 
           <div className={`main-wrapper ${activeTab === 'Messages' || activeTab === 'Classes' || activeTab === 'Quizzes' || activeTab === 'Statistics' ? 'no-padding' : ''}`}>
@@ -172,7 +198,7 @@ function App() {
                 <TeacherDashboard 
                   session={session} 
                   classes={classes} 
-                  setActiveTab={setActiveTab} 
+                  setActiveTab={handleSetActiveTab} 
                   setSelectedClass={setSelectedClass}
                   userData={userData}
                   onProfileUpdate={() => fetchUserData(session.user)}
@@ -181,7 +207,7 @@ function App() {
                 <StudentDashboard 
                   session={session} 
                   classes={classes} 
-                  setActiveTab={setActiveTab} 
+                  setActiveTab={handleSetActiveTab} 
                   setSelectedClass={setSelectedClass}
                   userData={userData}
                   onProfileUpdate={() => fetchUserData(session.user)}
@@ -211,6 +237,7 @@ function App() {
                 userRole={userRole} 
                 classes={classes}
                 isLoadingClasses={isLoadingClasses}
+                targetQuizId={targetQuizId}
               />
             ) : activeTab === 'Statistics' ? (
               <Analytics 
@@ -223,7 +250,7 @@ function App() {
                 <TeacherDashboard 
                   session={session} 
                   classes={classes} 
-                  setActiveTab={setActiveTab} 
+                  setActiveTab={handleSetActiveTab} 
                   setSelectedClass={setSelectedClass}
                   userData={userData}
                   onProfileUpdate={() => fetchUserData(session.user)}
@@ -232,7 +259,7 @@ function App() {
                 <StudentDashboard 
                   session={session} 
                   classes={classes} 
-                  setActiveTab={setActiveTab} 
+                  setActiveTab={handleSetActiveTab} 
                   setSelectedClass={setSelectedClass}
                   userData={userData}
                   onProfileUpdate={() => fetchUserData(session.user)}

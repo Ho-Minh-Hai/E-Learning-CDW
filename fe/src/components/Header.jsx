@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import userAvatar from '../assets/img/user.jpg';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSearch, faFire } from '@fortawesome/free-solid-svg-icons';
+import { faFire, faSun, faMoon } from '@fortawesome/free-solid-svg-icons';
 import { supabase } from '../supabaseClient';
 
-const Header = ({ session, userData, onLoginClick }) => {
+const Header = ({ session, userData, onLoginClick, theme, toggleTheme }) => {
     const userDefaultAvatar = userData?.avatarUrl || session?.user?.user_metadata?.avatar_url || userAvatar;
     const userName = userData?.fullName || session?.user?.user_metadata?.full_name || 'Bạn';
     const [streak, setStreak] = useState(0);
@@ -91,20 +91,44 @@ const Header = ({ session, userData, onLoginClick }) => {
         <header className="header">
             <h1>{session ? `Chào, ${userName}!` : ''}</h1>
             <div className="header-right">
-                <span className="header-icon" title="Streak" style={{ display: 'flex', alignItems: 'center',width: '100%', gap: '5px', color: isActiveToday ? '#ff9800' : '#9e9e9e', fontWeight: 'bold' }}>
-                    {streak} <FontAwesomeIcon icon={faFire} />
-                </span>
+                {session && (
+                    <span 
+                        className="streak-widget" 
+                        title="Streak học tập của bạn" 
+                        style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            gap: '6px', 
+                            color: isActiveToday ? '#ff9800' : '#a8a29e', 
+                            fontWeight: '800' 
+                        }}
+                    >
+                        <span>{streak}</span> 
+                        <FontAwesomeIcon icon={faFire} className={isActiveToday ? "fire-active" : ""} />
+                    </span>
+                )}
                 
+                {/* Theme Toggle Button */}
+                <button 
+                    onClick={toggleTheme} 
+                    className="theme-toggle-btn"
+                    title={theme === 'dark' ? "Chuyển sang Chế độ Sáng" : "Chuyển sang Chế độ Tối"}
+                >
+                    <FontAwesomeIcon icon={theme === 'dark' ? faSun : faMoon} />
+                </button>
+
                 {session ? (
-                    <div className="header-user-wrapper">
-                        <div className="user-avatar-container">
+                    <div className="user-avatar-wrapper">
+                        <div className="avatar-dropdown-trigger">
                             <img 
                                 src={userDefaultAvatar}
                                 alt="User Avatar"
-                                className="nav-avatar"
+                                className="navbar-avatar"
                             />
-                            <div className="avatar-dropdown">
-                                <button onClick={handleLogout} className="logout-btn">
+                            <div className="avatar-dropdown-content">
+                                <div className="dropdown-username">{userName}</div>
+                                <div className="dropdown-divider"></div>
+                                <button onClick={handleLogout} className="logout-button-custom">
                                     Đăng xuất
                                 </button>
                             </div>
@@ -113,19 +137,7 @@ const Header = ({ session, userData, onLoginClick }) => {
                 ) : (
                     <button 
                         onClick={onLoginClick}
-                        className="login-btn-custom"
-                        style={{ 
-                            background: 'linear-gradient(135deg, var(--primary), var(--primary-dark))', 
-                            color: '#ffffff', 
-                            border: 'none', 
-                            padding: '10px 22px', 
-                            borderRadius: 'var(--border-radius-sm)', 
-                            cursor: 'pointer',
-                            fontWeight: '700',
-                            fontFamily: 'var(--font-body)',
-                            boxShadow: 'var(--shadow)',
-                            transition: 'var(--transition)'
-                        }}
+                        className="navbar-login-btn"
                     >
                         Đăng nhập
                     </button>
@@ -133,6 +145,6 @@ const Header = ({ session, userData, onLoginClick }) => {
             </div>
         </header>
     );
-}
+};
 
 export default Header;

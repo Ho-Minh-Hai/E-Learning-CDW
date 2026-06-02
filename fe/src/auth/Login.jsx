@@ -11,6 +11,7 @@ const Login = ({ theme, toggleTheme }) => {
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const redirectUrl = window.location.href;
 
     const handleAuthentication = async (e) => {
         e.preventDefault();
@@ -29,7 +30,7 @@ const Login = ({ theme, toggleTheme }) => {
                     email,
                     password,
                     options: {
-                        emailRedirectTo: window.location.origin,
+                        emailRedirectTo: redirectUrl,
                     }
                 });
                 if (error) throw error;
@@ -50,7 +51,7 @@ const Login = ({ theme, toggleTheme }) => {
                         access_type: 'offline',
                         prompt: 'consent',
                     },
-                    redirectTo: window.location.origin
+                    redirectTo: redirectUrl
                 }
             });
             if (error) throw error;
