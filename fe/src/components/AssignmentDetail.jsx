@@ -17,8 +17,6 @@ import {
     faPaperclip,
     faChevronRight,
     faStar,
-    faTasks,
-    faBullhorn,
 } from '@fortawesome/free-solid-svg-icons';
 
 const AssignmentDetail = ({ post, session, userRole, onBack, selectedClass, userData, onSwitchToMessages }) => {
@@ -358,66 +356,62 @@ const AssignmentDetail = ({ post, session, userRole, onBack, selectedClass, user
     };
 
     return (
-        <div className="assignment-detail-root">
+        <div className="assignment-detail-container">
             {/* Top bar */}
-            <div className="assignment-topbar">
-                <button className="assignment-back-btn" onClick={onBack}>
+            <div className="assignment-header">
+                <button className="back-btn" onClick={onBack}>
                     <FontAwesomeIcon icon={faArrowLeft} />
                     <span>Quay lại</span>
                 </button>
-                <div className="assignment-topbar-center">
-                    <span className="assignment-class-badge">{selectedClass?.name}</span>
+                <div style={{ display: 'flex', flex: 1, justifyContent: 'center' }}>
+                    <span className="assignment-class-badge" style={{ padding: '6px 16px', background: 'var(--primary-50)', color: 'var(--primary)', borderRadius: '20px', fontWeight: '700', fontSize: '13px' }}>{selectedClass?.name}</span>
                 </div>
                 <div style={{ width: 100 }} />
             </div>
 
-            <div className="assignment-layout">
+            <div className="assignment-content-layout">
                 {/* LEFT: Assignment Info */}
                 <div className="assignment-left-panel">
-                    <div className="assignment-info-card">
-                        <div className="assignment-type-indicator">
-                            <FontAwesomeIcon icon={post.type === 'assignment' ? faTasks : (post.type === 'material' ? faFileAlt : faBullhorn)} />
-                            <span>{post.type === 'assignment' ? 'Bài tập' : (post.type === 'material' ? 'Tài liệu' : 'Thông báo')}</span>
+                    <div className="post-header-detail">
+                        <div className="user-avatar-lg">
+                            {post.authorAvatar ? (
+                                <img src={post.authorAvatar} alt="avatar" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                            ) : (
+                                (post.authorName || 'U').charAt(0).toUpperCase()
+                            )}
                         </div>
-                        <h1 className="assignment-title">{post.title || (post.type === 'announcement' ? 'Thông báo' : '')}</h1>
-
-                        <div className="assignment-meta-row">
-                            <div className="assignment-meta-item author-row">
-                                <div className="author-info">
-                                    <FontAwesomeIcon icon={faUsers} className="meta-icon" />
-                                    <span>{post.authorName}</span>
-                                </div>
+                        <div className="post-title-section">
+                            <h2>{post.title || (post.type === 'announcement' ? 'Thông báo' : '')}</h2>
+                            <div className="post-meta-detail">
+                                <span>{post.authorName}</span>
+                                <span>•</span>
+                                <span>{new Date(post.createdAt).toLocaleDateString('vi-VN')}</span>
                                 {post.dueAt && (
                                     <>
-                                        {!isTeacher && mySubmission?.score !== null && mySubmission?.score !== undefined && (
-                                            <div className="student-grade-display">
-                                                <FontAwesomeIcon icon={faStar} className="meta-icon" style={{ color: '#1e8e3e' }} />
-                                                <span style={{ color: '#1e8e3e', fontWeight: '500' }}>Điểm: {mySubmission.score}/10</span>
-                                            </div>
-                                        )}
-                                        <div className={`deadline-info ${isOverdue ? 'overdue' : ''}`}>
-                                            <span>{formatDeadline(new Date(post.dueAt))}</span>
-                                        </div>
+                                        <span>•</span>
+                                        <span style={{ color: isOverdue ? '#d93025' : '#1e8e3e', fontWeight: '600' }}>
+                                            {formatDeadline(new Date(post.dueAt))}
+                                        </span>
+                                    </>
+                                )}
+                                {deadline && !isOverdue && timeLeft && (
+                                    <>
+                                        <span>•</span>
+                                        <span style={{ color: '#1a73e8' }}>Còn lại: {timeLeft}</span>
                                     </>
                                 )}
                             </div>
-                            {deadline && !isOverdue && timeLeft && (
-                                <div className="assignment-meta-item time-left">
-                                    <FontAwesomeIcon icon={faClock} className="meta-icon" />
-                                    <span>Còn lại: {timeLeft}</span>
-                                </div>
-                            )}
                         </div>
+                    </div>
 
-                        <div className="assignment-divider" />
-
-                        <div className="assignment-description">
+                    <div className="post-body-detail">
+                        <div className="post-content-text">
                             <p>{post.content}</p>
                         </div>
 
                         {post.attachments && post.attachments.length > 0 && (
-                            <div className="assignment-attachments-section">
-                                <h4>
+                            <div className="detail-attachments">
+                                <h4 style={{ width: '100%', fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '12px' }}>
                                     <FontAwesomeIcon icon={faPaperclip} style={{ marginRight: 8 }} />
                                     Tài liệu đính kèm
                                 </h4>
@@ -427,37 +421,35 @@ const AssignmentDetail = ({ post, session, userRole, onBack, selectedClass, user
                                         href={att.fileUrl}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="assignment-file-link"
+                                        className="detail-attachment-card"
                                     >
-                                        <div className="file-link-icon">
+                                        <div className="file-link-icon" style={{ marginRight: '12px', color: 'var(--primary)', fontSize: '18px' }}>
                                             <FontAwesomeIcon icon={faFileAlt} />
                                         </div>
-                                        <div className="file-link-info">
-                                            <span className="file-link-name">{att.fileName}</span>
-                                            <span className="file-link-meta">
+                                        <div className="file-link-info" style={{ flex: 1, minWidth: 0 }}>
+                                            <div className="file-link-name" style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{att.fileName}</div>
+                                            <div className="file-link-meta" style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
                                                 {att.fileSize ? `${(att.fileSize / 1024 / 1024).toFixed(2)} MB` : ''} 
-                                            </span>
+                                            </div>
                                         </div>
-                                        <FontAwesomeIcon icon={faDownload} className="file-link-download" />
+                                        <FontAwesomeIcon icon={faDownload} className="file-link-download" style={{ color: 'var(--text-muted)', fontSize: '14px' }} />
                                     </a>
                                 ))}
                             </div>
                         )}
 
-                            <>
-                                <div className="assignment-divider" />
-                                <div className="assignment-comments-section" style={{ marginTop: '24px' }}>
-                                    <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', color: '#3c4043' }}>
-                                        <FontAwesomeIcon icon={faUsers} />
-                                        Bình luận của lớp học ({comments.length})
-                                    </h4>
-                            
-                            <div className="comments-list" style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px' }}>
+                        <div className="comments-section-detail">
+                            <h4 className="comments-header-detail">
+                                <FontAwesomeIcon icon={faUsers} />
+                                Bình luận của lớp học ({comments.length})
+                            </h4>
+                    
+                            <div className="comment-list-full">
                                 {comments.map(comment => (
-                                    <div key={comment.id} className="comment-item-full" style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                                    <div key={comment.id} className="comment-item-full">
                                         <div className="user-avatar-md" style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#ccc', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                                             {comment.userAvatar ? (
-                                                <img src={comment.userAvatar} alt={comment.userName} style={{ width: '100%', height: '100%', borderRadius: '50%' }} />
+                                                <img src={comment.userAvatar} alt={comment.userName} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
                                             ) : comment.userName.charAt(0).toUpperCase()}
                                         </div>
                                         <div className="comment-content-full" style={{ flex: 1 }}>
@@ -471,7 +463,7 @@ const AssignmentDetail = ({ post, session, userRole, onBack, selectedClass, user
                                 ))}
                             </div>
 
-                            <div className="add-comment-detail" >
+                            <div className="add-comment-detail">
                                 <div className="user-avatar-md" style={{ 
                                     width: '40px', 
                                     height: '40px', 
@@ -492,7 +484,7 @@ const AssignmentDetail = ({ post, session, userRole, onBack, selectedClass, user
                                         (userData?.fullName || session.user.email || 'U').charAt(0).toUpperCase()
                                     )}
                                 </div>
-                                <div style={{ flex: 1 }}>
+                                <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '12px' }}>
                                     <textarea 
                                         placeholder="Thêm bình luận cho lớp học..."
                                         className="comment-textarea"
@@ -503,27 +495,20 @@ const AssignmentDetail = ({ post, session, userRole, onBack, selectedClass, user
                                             e.target.style.height = 'auto';
                                             e.target.style.height = (e.target.scrollHeight) + 'px';
                                         }}
+                                        style={{ flex: 1, width: '100%', minHeight: '44px', maxHeight: '120px', resize: 'none' }}
                                     />
-                                    <div style={{ 
-                                        display: 'flex', 
-                                        justifyContent: 'flex-end',
-                                        marginTop: '12px',
-                                        opacity: newComment.trim() ? 1 : 0.6,
-                                        transition: 'opacity 0.2s'
-                                    }}>
-                                        <button 
-                                            onClick={submitComment}
-                                            disabled={!newComment.trim() || loading}
-                                            className={`comment-submit-btn ${newComment.trim() ? 'active' : 'disabled'}`}
-                                        >
-                                            <FontAwesomeIcon icon={faPaperPlane} size="sm" />
-                                            Đăng
-                                        </button>
-                                    </div>
+                                    <button 
+                                        onClick={submitComment}
+                                        disabled={!newComment.trim() || loading}
+                                        className={`comment-submit-btn ${newComment.trim() ? 'active' : 'disabled'}`}
+                                        style={{ height: 'fit-content', whiteSpace: 'nowrap', opacity: newComment.trim() ? 1 : 0.6, transition: 'opacity 0.2s' }}
+                                    >
+                                        <FontAwesomeIcon icon={faPaperPlane} size="sm" />
+                                        Đăng
+                                    </button>
                                 </div>
                             </div>
                         </div>
-                            </>
                     </div>
                 </div>
 
@@ -695,7 +680,7 @@ const StudentPanel = ({
     handleFileChange, removeFile, handleSubmit, handleUnsubmit, handleDeleteFile,
     teacherName, onMessageTeacher
 }) => (
-    <div className="student-work-panel">
+    <div className="my-work-panel">
         <div className="panel-header">
             <h3>Bài làm của tôi</h3>
             {mySubmission ? (

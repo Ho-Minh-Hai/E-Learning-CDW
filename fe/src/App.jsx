@@ -21,6 +21,25 @@ const getUrlNavigation = () => {
   };
 };
 
+const hasAuthCallbackParams = () => {
+  const params = new URLSearchParams(window.location.search);
+  const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+
+  return (
+    params.has('code') ||
+    params.has('error') ||
+    params.has('error_description') ||
+    hashParams.has('access_token') ||
+    hashParams.has('refresh_token') ||
+    hashParams.has('error') ||
+    hashParams.has('error_description')
+  );
+};
+
+const clearAuthCallbackUrl = () => {
+  window.history.replaceState({}, document.title, window.location.pathname);
+};
+
 function App() {
   const [session, setSession] = useState(null);
   const [showLogin, setShowLogin] = useState(false);
@@ -54,6 +73,11 @@ function App() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session) {
+        if (hasAuthCallbackParams()) {
+          clearAuthCallbackUrl();
+          setActiveTab('Dashboard');
+          setTargetQuizId(null);
+        }
         fetchUserData(session.user);
         fetchUnreadCount(session.user.id);
       }
@@ -62,6 +86,11 @@ function App() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       setSession(session);
       if (session) {
+        if (hasAuthCallbackParams()) {
+          clearAuthCallbackUrl();
+          setActiveTab('Dashboard');
+          setTargetQuizId(null);
+        }
         fetchUserData(session.user);
         fetchUnreadCount(session.user.id);
       } else {
