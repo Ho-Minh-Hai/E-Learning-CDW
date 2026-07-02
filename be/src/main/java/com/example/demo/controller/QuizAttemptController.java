@@ -10,6 +10,7 @@ import com.example.demo.repository.QuizAttemptRepository;
 import com.example.demo.repository.QuizRepository;
 import com.example.demo.repository.StudentAnswerRepository;
 import com.example.demo.repository.UserRepository;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,7 +42,7 @@ public class QuizAttemptController {
 
     @PostMapping("/submit")
     @Transactional
-    public ResponseEntity<?> submitQuiz(@RequestBody QuizSubmissionDTO submission) {
+    public ResponseEntity<?> submitQuiz(@Valid @RequestBody QuizSubmissionDTO submission) {
         try {
             // Kiểm tra User có tồn tại không
             if (!userRepository.existsById(submission.getUserId())) {

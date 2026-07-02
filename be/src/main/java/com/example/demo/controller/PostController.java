@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.PostDTO;
 import com.example.demo.service.PostService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +18,7 @@ public class PostController {
     private final PostService postService;
 
     @PostMapping
-    public ResponseEntity<List<PostDTO>> createPost(@RequestBody PostDTO postDTO) {
+    public ResponseEntity<List<PostDTO>> createPost(@Valid @RequestBody PostDTO postDTO) {
         return ResponseEntity.ok(postService.createPost(postDTO));
     }
 
@@ -27,7 +28,7 @@ public class PostController {
     }
 
     @PutMapping("/{postId}")
-    public ResponseEntity<PostDTO> updatePost(@PathVariable UUID postId, @RequestBody PostDTO postDTO) {
+    public ResponseEntity<PostDTO> updatePost(@PathVariable UUID postId, @Valid @RequestBody PostDTO postDTO) {
         return ResponseEntity.ok(postService.updatePost(postId, postDTO));
     }
 

@@ -2,7 +2,11 @@ package com.example.demo.controller;
 
 import com.example.demo.model.User;
 import com.example.demo.service.UserService;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,13 +18,14 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/auth")
 @CrossOrigin(origins = "*") // Hoặc domain của FE bạn
+@Validated
 public class AuthController {
 
     @Autowired
     private UserService userService;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
         try {
             User user = userService.processUserLogin(
                 request.getId(),
@@ -37,8 +42,8 @@ public class AuthController {
 
     @GetMapping("/users/search")
     public ResponseEntity<List<SearchUserResponse>> searchUsers(
-            @RequestParam String query,
-            @RequestParam UUID excludeId) {
+            @RequestParam @NotBlank String query,
+            @RequestParam @NotNull UUID excludeId) {
         List<SearchUserResponse> users = userService.searchUsers(query, excludeId).stream()
                 .map(user -> new SearchUserResponse(
                         user.getId(),
@@ -52,7 +57,7 @@ public class AuthController {
     @PutMapping("/users/{id}/profile")
     public ResponseEntity<?> updateProfile(
             @PathVariable UUID id,
-            @RequestBody UpdateProfileRequest request) {
+            @Valid @RequestBody UpdateProfileRequest request) {
         try {
             User user = userService.updateUserProfile(
                     id,

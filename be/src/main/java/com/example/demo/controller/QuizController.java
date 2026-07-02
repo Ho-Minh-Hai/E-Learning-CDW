@@ -8,6 +8,7 @@ import com.example.demo.model.Question;
 import com.example.demo.model.Quiz;
 import com.example.demo.repository.QuizRepository;
 import com.example.demo.service.AIQuestionGeneratorService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -35,7 +36,7 @@ public class QuizController {
     private AIQuestionGeneratorService aiQuestionGeneratorService;
 
     @PostMapping
-    public ResponseEntity<?> createQuiz(@RequestBody QuizCreateRequest request) {
+    public ResponseEntity<?> createQuiz(@Valid @RequestBody QuizCreateRequest request) {
         try {
             Quiz quiz = new Quiz();
             quiz.setTitle(request.getQuiz().getTitle());
@@ -96,7 +97,7 @@ public class QuizController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateQuiz(@PathVariable UUID id, @RequestBody QuizCreateRequest request) {
+    public ResponseEntity<?> updateQuiz(@PathVariable UUID id, @Valid @RequestBody QuizCreateRequest request) {
         try {
             Quiz existingQuiz = quizRepository.findById(id).orElse(null);
             if (existingQuiz == null) return ResponseEntity.notFound().build();
@@ -175,15 +176,8 @@ public class QuizController {
     }
 
     @PostMapping("/generate-questions-ai")
-    public ResponseEntity<?> generateQuestionsWithAI(@RequestBody AIGenerateQuestionsRequest request) {
+    public ResponseEntity<?> generateQuestionsWithAI(@Valid @RequestBody AIGenerateQuestionsRequest request) {
         try {
-            if (request.getFileContent() == null || request.getFileContent().trim().isEmpty()) {
-                return ResponseEntity.badRequest().body("File content is required");
-            }
-            if (request.getNumberOfQuestions() == null || request.getNumberOfQuestions() <= 0) {
-                return ResponseEntity.badRequest().body("Number of questions must be greater than 0");
-            }
-
             AIGeneratedQuestionsResponse response = aiQuestionGeneratorService.generateQuestions(
                 request.getFileContent(),
                 request.getNumberOfQuestions(),

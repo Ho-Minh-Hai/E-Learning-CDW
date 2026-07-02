@@ -4,6 +4,10 @@ import com.example.demo.model.Conversation;
 import com.example.demo.model.Message;
 import com.example.demo.model.MessageEdit;
 import com.example.demo.service.ChatService;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,17 +30,14 @@ public class ChatController {
     }
 
     @PostMapping("/conversations")
-    public ResponseEntity<?> getOrCreateConversation(@RequestBody Map<String, UUID> payload) {
+    public ResponseEntity<?> getOrCreateConversation(@Valid @RequestBody CreateConversationRequest payload) {
         try {
-            if (payload.get("user1Id") == null || payload.get("user2Id") == null) {
-                return ResponseEntity.badRequest().body(Map.of("message", "Thiếu ID người dùng để tạo cuộc trò chuyện."));
-            }
-            if (payload.get("user1Id").equals(payload.get("user2Id"))) {
+            if (payload.getUser1Id().equals(payload.getUser2Id())) {
                 return ResponseEntity.badRequest().body(Map.of("message", "Không thể tự tạo cuộc trò chuyện với chính mình."));
             }
             return ResponseEntity.ok(chatService.getOrCreateConversation(
-                    payload.get("user1Id"),
-                    payload.get("user2Id")
+                    payload.getUser1Id(),
+                    payload.getUser2Id()
             ));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
@@ -49,12 +50,12 @@ public class ChatController {
     }
 
     @PostMapping("/messages")
-    public ResponseEntity<?> sendMessage(@RequestBody Map<String, Object> payload) {
+    public ResponseEntity<?> sendMessage(@Valid @RequestBody SendMessageRequest payload) {
         try {
             return ResponseEntity.ok(chatService.saveMessage(
-                    UUID.fromString(payload.get("conversationId").toString()),
-                    UUID.fromString(payload.get("senderId").toString()),
-                    payload.get("content").toString()
+                    payload.getConversationId(),
+                    payload.getSenderId(),
+                    payload.getContent()
             ));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
@@ -64,8 +65,8 @@ public class ChatController {
     @PutMapping("/messages/{messageId}")
     public ResponseEntity<Message> editMessage(
             @PathVariable UUID messageId,
-            @RequestBody Map<String, String> payload) {
-        return ResponseEntity.ok(chatService.updateMessage(messageId, payload.get("content")));
+            @Valid @RequestBody EditMessageRequest payload) {
+        return ResponseEntity.ok(chatService.updateMessage(messageId, payload.getContent()));
     }
 
     @GetMapping("/messages/{messageId}/edits")
@@ -92,8 +93,44 @@ public class ChatController {
     }
 
     @PostMapping("/mark-as-read")
-    public ResponseEntity<Void> markAsRead(@RequestBody Map<String, UUID> payload) {
-        chatService.markAsRead(payload.get("conversationId"), payload.get("userId"));
+    public ResponseEntity<Void> markAsRead(@Valid @RequestBody MarkAsReadRequest payload) {
+        chatService.markAsRead(payload.getConversationId(), payload.getUserId());
         return ResponseEntity.ok().build();
+    }
+
+    @Data
+    public static class CreateConversationRequest {
+        @NotNull(message = "user1Id is required")
+        private UUID user1Id;
+
+        @NotNull(message = "user2Id is required")
+        private UUID user2Id;
+    }
+
+    @Data
+    public static class SendMessageRequest {
+        @NotNull(message = "conversationId is required")
+        private UUID conversationId;
+
+        @NotNull(message = "senderId is required")
+        private UUID senderId;
+
+        @NotBlank(message = "content is required")
+        private String content;
+    }
+
+    @Data
+    public static class EditMessageRequest {
+        @NotBlank(message = "content is required")
+        private String content;
+    }
+
+    @Data
+    public static class MarkAsReadRequest {
+        @NotNull(message = "conversationId is required")
+        private UUID conversationId;
+
+        @NotNull(message = "userId is required")
+        private UUID userId;
     }
 }
