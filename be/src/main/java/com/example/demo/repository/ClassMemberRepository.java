@@ -15,4 +15,6 @@ public interface ClassMemberRepository extends JpaRepository<ClassMember, UUID> 
     long countByClassId(UUID classId);
     List<ClassMember> findByClassId(UUID classId);
     void deleteByStudentIdAndClassId(UUID studentId, UUID classId);
+    void deleteByClassId(UUID classId);
+    void deleteByStudentId(UUID studentId);
 }

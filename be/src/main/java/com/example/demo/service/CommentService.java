@@ -4,6 +4,8 @@ import com.example.demo.dto.CommentDTO;
 import com.example.demo.model.Comment;
 import com.example.demo.model.PostEntity;
 import com.example.demo.model.User;
+import com.example.demo.model.BannedKeyword;
+import com.example.demo.repository.BannedKeywordRepository;
 import com.example.demo.repository.CommentRepository;
 import com.example.demo.repository.PostRepository;
 import com.example.demo.repository.UserRepository;
@@ -21,9 +23,22 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final BannedKeywordRepository bannedKeywordRepository;
 
     @Transactional
     public CommentDTO createComment(CommentDTO commentDTO) {
+        // Validate comment content
+        String text = commentDTO.getContent();
+        if (text != null) {
+            List<BannedKeyword> bannedKeywords = bannedKeywordRepository.findAll();
+            for (BannedKeyword bk : bannedKeywords) {
+                String keyword = bk.getKeyword().toLowerCase();
+                if (text.toLowerCase().contains(keyword)) {
+                    throw new IllegalArgumentException("Không thể thực thi vì có từ khóa cấm: " + bk.getKeyword());
+                }
+            }
+        }
+
         PostEntity post = postRepository.findById(commentDTO.getPostId())
                 .orElseThrow(() -> new RuntimeException("Post not found"));
         User user = userRepository.findById(commentDTO.getUserId())

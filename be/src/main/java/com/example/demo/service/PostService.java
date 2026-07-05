@@ -21,9 +21,11 @@ public class PostService {
     private final AssignmentDeadlineRepository assignmentDeadlineRepository;
     private final CommentRepository commentRepository;
     private final EmailService emailService;
+    private final BannedKeywordRepository bannedKeywordRepository;
 
     @Transactional
     public List<PostDTO> createPost(PostDTO postDTO) {
+        validateContent(postDTO.getTitle(), postDTO.getContent());
         List<UUID> targetClassIds = postDTO.getTargetClassIds();
         if (targetClassIds == null || targetClassIds.isEmpty()) {
             targetClassIds = Collections.singletonList(postDTO.getClassId());
@@ -199,6 +201,7 @@ public class PostService {
 
     @Transactional
     public PostDTO updatePost(UUID postId, PostDTO postDTO) {
+        validateContent(postDTO.getTitle(), postDTO.getContent());
         PostEntity post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
 
@@ -273,5 +276,18 @@ public class PostService {
         attachmentRepository.deleteByPostId(postId);
         assignmentDeadlineRepository.deleteByPostId(postId);
         postRepository.deleteById(postId);
+    }
+
+    private void validateContent(String title, String content) {
+        List<BannedKeyword> bannedKeywords = bannedKeywordRepository.findAll();
+        for (BannedKeyword bk : bannedKeywords) {
+            String keyword = bk.getKeyword().toLowerCase();
+            if (title != null && title.toLowerCase().contains(keyword)) {
+                throw new IllegalArgumentException("Không thể thực thi vì có từ khóa cấm: " + bk.getKeyword());
+            }
+            if (content != null && content.toLowerCase().contains(keyword)) {
+                throw new IllegalArgumentException("Không thể thực thi vì có từ khóa cấm: " + bk.getKeyword());
+            }
+        }
     }
 }

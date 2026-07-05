@@ -2237,6 +2237,24 @@ body {
   border-color: rgba(255, 255, 255, 0.05);
 }
 
+/* Full page loading spinner */
+.full-page-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  width: 100%;
+  background: var(--bg-primary, #ffffff);
+  color: var(--text-primary, #333333);
+}
 
-
-
+.loading-spinner-container {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-left-color: #4f46e5;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}

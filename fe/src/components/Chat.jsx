@@ -275,7 +275,8 @@ const Chat = ({ session, userData, pendingConversation, refreshUnreadCount }) =>
                 })
             });
             if (!response.ok) {
-                throw new Error(`Không gửi được tin nhắn (${response.status})`);
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(errData.message || `Không gửi được tin nhắn (${response.status})`);
             }
             const data = normalizeMessage(await response.json());
             setNewMessage('');
@@ -286,6 +287,7 @@ const Chat = ({ session, userData, pendingConversation, refreshUnreadCount }) =>
             }));
         } catch (error) {
             console.error('Error sending message:', error.message || error);
+            alert(error.message || 'Lỗi gửi tin nhắn.');
         }
     };
 
@@ -392,7 +394,8 @@ const Chat = ({ session, userData, pendingConversation, refreshUnreadCount }) =>
                 body: JSON.stringify({ content: editingContent.trim() })
             });
             if (!response.ok) {
-                throw new Error(`Không chỉnh sửa được tin nhắn (${response.status})`);
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(errData.message || `Không chỉnh sửa được tin nhắn (${response.status})`);
             }
             const updatedMessage = normalizeMessage(await response.json());
                 setMessages(prev => 
@@ -417,6 +420,7 @@ const Chat = ({ session, userData, pendingConversation, refreshUnreadCount }) =>
                 setEditingContent('');
         } catch (error) {
             console.error('Error updating message:', error.message || error);
+            alert(error.message || 'Lỗi chỉnh sửa tin nhắn.');
         }
     };
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import './App.css';
 import TopNavbar from './components/TopNavbar';
 import ClassPage from './components/Class';
@@ -8,6 +8,7 @@ import EQuizz from './components/EQuizz';
 import Analytics from './components/Analytics';
 import TeacherDashboard from './components/TeacherDashboard';
 import StudentDashboard from './components/StudentDashboard';
+import AdminDashboard from './components/AdminDashboard';
 import { supabase } from './supabaseClient';
 
 const getUrlNavigation = () => {
@@ -41,10 +42,13 @@ const clearAuthCallbackUrl = () => {
 };
 
 function App() {
+  const currentUserIdRef = useRef(null);
+  const isFetchingRef = useRef(false);
   const [session, setSession] = useState(null);
   const [showLogin, setShowLogin] = useState(false);
   const [userRole, setUserRole] = useState(null);
   const [userData, setUserData] = useState(null);
+  const [loadingUser, setLoadingUser] = useState(true);
   const [activeTab, setActiveTab] = useState(() => getUrlNavigation().tab || 'Dashboard');
   const [targetQuizId, setTargetQuizId] = useState(() => {
     const navigation = getUrlNavigation();
@@ -78,8 +82,12 @@ function App() {
           setActiveTab('Dashboard');
           setTargetQuizId(null);
         }
-        fetchUserData(session.user);
-        fetchUnreadCount(session.user.id);
+        if (currentUserIdRef.current !== session.user.id) {
+          fetchUserData(session.user);
+          fetchUnreadCount(session.user.id);
+        }
+      } else {
+        setLoadingUser(false);
       }
     });
 
@@ -91,12 +99,16 @@ function App() {
           setActiveTab('Dashboard');
           setTargetQuizId(null);
         }
-        fetchUserData(session.user);
-        fetchUnreadCount(session.user.id);
+        if (currentUserIdRef.current !== session.user.id) {
+          fetchUserData(session.user);
+          fetchUnreadCount(session.user.id);
+        }
       } else {
         setUserRole(null);
         setUserData(null);
         setUnreadCount(0);
+        setLoadingUser(false);
+        currentUserIdRef.current = null;
       }
     });
 
@@ -127,6 +139,14 @@ function App() {
   };
 
   const fetchUserData = async (user) => {
+    if (isFetchingRef.current) return;
+    if (currentUserIdRef.current === user.id && userData) {
+      setLoadingUser(false);
+      return;
+    }
+    isFetchingRef.current = true;
+    currentUserIdRef.current = user.id;
+    setLoadingUser(true);
     try {
       const response = await fetch('http://localhost:8080/api/auth/login', {
         method: 'POST',
@@ -144,15 +164,20 @@ function App() {
       
       if (response.ok) {
         const data = await response.json();
-        setUserRole(data.role); 
+        setUserRole(data.role ? String(data.role) : null); 
         setUserData(data); // Lưu thông tin trả về từ supabase
         fetchClasses(user.id, data.role);
       } else {
         const errorData = await response.json().catch(() => ({}));
         console.error("Backend login failed:", errorData.message || response.statusText);
+        currentUserIdRef.current = null;
       }
     } catch (error) {
       console.error("Error syncing Supabase user with backend:", error);
+      currentUserIdRef.current = null;
+    } finally {
+      setLoadingUser(false);
+      isFetchingRef.current = false;
     }
   };
 
@@ -208,13 +233,19 @@ function App() {
   return (
     <div className={`dashboard-container ${!session ? 'landing-mode-active' : ''}`}>
       {session ? (
-        <>
-          <TopNavbar 
-            userRole={userRole} 
-            activeTab={activeTab} 
-            unreadCount={unreadCount} 
-            session={session}
-            userData={userData}
+        loadingUser ? (
+          <div className="full-page-loading">
+            <div className="loading-spinner-container"></div>
+            <p>Đang tải thông tin tài khoản...</p>
+          </div>
+        ) : (
+          <>
+            <TopNavbar 
+              userRole={userRole} 
+              activeTab={activeTab} 
+              unreadCount={unreadCount} 
+              session={session}
+              userData={userData}
             onLoginClick={() => setShowLogin(true)}
             theme={theme}
             toggleTheme={toggleTheme}
@@ -223,7 +254,13 @@ function App() {
 
           <div className={`main-wrapper ${activeTab === 'Messages' || activeTab === 'Classes' || activeTab === 'Quizzes' || activeTab === 'Statistics' ? 'no-padding' : ''}`}>
             {activeTab === 'Dashboard' ? (
-              userRole === "1" ? (
+              userRole === "2" ? (
+                <AdminDashboard 
+                  session={session} 
+                  userData={userData} 
+                  setActiveTab={handleSetActiveTab} 
+                />
+              ) : userRole === "1" ? (
                 <TeacherDashboard 
                   session={session} 
                   classes={classes} 
@@ -275,7 +312,13 @@ function App() {
                 onSwitchToMessages={handleSwitchToMessages}
               />
             ) : (
-              userRole === "1" ? (
+              userRole === "2" ? (
+                <AdminDashboard 
+                  session={session} 
+                  userData={userData} 
+                  setActiveTab={handleSetActiveTab} 
+                />
+              ) : userRole === "1" ? (
                 <TeacherDashboard 
                   session={session} 
                   classes={classes} 
@@ -297,7 +340,7 @@ function App() {
             )}
           </div>
         </>
-      ) : (
+      )) : (
         <Login theme={theme} toggleTheme={toggleTheme} />
       )}
     </div>

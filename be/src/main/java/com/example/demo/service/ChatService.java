@@ -7,6 +7,8 @@ import com.example.demo.model.User;
 import com.example.demo.repository.ConversationRepository;
 import com.example.demo.repository.MessageRepository;
 import com.example.demo.repository.MessageEditRepository;
+import com.example.demo.model.BannedKeyword;
+import com.example.demo.repository.BannedKeywordRepository;
 import com.example.demo.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -31,6 +33,9 @@ public class ChatService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private BannedKeywordRepository bannedKeywordRepository;
 
     private static final long RECALL_LIMIT_HOURS = 3;
 
@@ -63,6 +68,15 @@ public class ChatService {
     }
 
     public Message saveMessage(UUID conversationId, UUID senderId, String content) {
+        if (content != null) {
+            List<BannedKeyword> bannedKeywords = bannedKeywordRepository.findAll();
+            for (BannedKeyword bk : bannedKeywords) {
+                String keyword = bk.getKeyword().toLowerCase();
+                if (content.toLowerCase().contains(keyword)) {
+                    throw new IllegalArgumentException("Không thể thực thi vì có từ khóa cấm: " + bk.getKeyword());
+                }
+            }
+        }
         Conversation conversation = conversationRepository.findById(conversationId)
                 .orElseThrow(() -> new RuntimeException("Conversation not found"));
         User sender = userRepository.findById(senderId)
@@ -86,6 +100,15 @@ public class ChatService {
     }
 
     public Message updateMessage(UUID messageId, String newContent) {
+        if (newContent != null) {
+            List<BannedKeyword> bannedKeywords = bannedKeywordRepository.findAll();
+            for (BannedKeyword bk : bannedKeywords) {
+                String keyword = bk.getKeyword().toLowerCase();
+                if (newContent.toLowerCase().contains(keyword)) {
+                    throw new IllegalArgumentException("Không thể thực thi vì có từ khóa cấm: " + bk.getKeyword());
+                }
+            }
+        }
         Message message = messageRepository.findById(messageId)
                 .orElseThrow(() -> new RuntimeException("Message not found"));
 

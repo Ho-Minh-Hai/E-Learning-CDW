@@ -30,16 +30,39 @@ public class SupabaseAuthenticationFilter extends OncePerRequestFilter {
         this.userRepository = userRepository;
     }
 
+    private synchronized void logToFile(String message) {
+        try {
+            java.io.File file = new java.io.File("d:\\Workspace\\WebPrograming\\WEB_CDW\\APPLICATION\\be\\security.log");
+            java.io.FileWriter fw = new java.io.FileWriter(file, true);
+            java.io.BufferedWriter bw = new java.io.BufferedWriter(fw);
+            bw.write(new java.util.Date() + " - " + message);
+            bw.newLine();
+            bw.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
+        String uri = request.getRequestURI();
+        logToFile("=== doFilterInternal START ===");
+        logToFile("Request URI: " + uri);
+        
         String authorization = request.getHeader("Authorization");
-        if (authorization != null && authorization.startsWith("Bearer ")) {
+        if (authorization == null) {
+            logToFile("Authorization header is MISSING for URI: " + uri);
+        } else if (!authorization.startsWith("Bearer ")) {
+            logToFile("Authorization header format is INVALID (does not start with Bearer): " + authorization);
+        } else {
             String token = authorization.substring(7);
+            logToFile("Token found. Length: " + token.length());
             try {
                 JWTClaimsSet claims = jwtService.validateToken(token);
                 String subject = claims.getSubject();
+                logToFile("Token validated successfully. Subject: " + subject);
                 if (subject != null) {
                     UUID userId = UUID.fromString(subject);
                     Optional<User> userOptional = userRepository.findById(userId);
@@ -47,20 +70,23 @@ public class SupabaseAuthenticationFilter extends OncePerRequestFilter {
                         User user = userOptional.get();
                         String roleValue = user.getRole();
                         SimpleGrantedAuthority authority = mapRoleToAuthority(roleValue);
+                        logToFile("User found in database: " + user.getEmail() + " | DB Role: " + roleValue + " | Mapped Authority: " + authority.getAuthority());
                         Authentication authentication = new UsernamePasswordAuthenticationToken(
                                 userId,
                                 null,
                                 List.of(authority)
                         );
                         SecurityContextHolder.getContext().setAuthentication(authentication);
+                        logToFile("Authentication set in SecurityContext for user: " + user.getEmail());
                     } else {
-                        System.out.println("User not found: " + subject);
+                        logToFile("User NOT found in database repository for subject: " + subject);
                     }
                 }
             } catch (Exception ex) {
-                System.out.println("JWT ERROR: " + ex.getMessage());
+                logToFile("JWT validation ERROR: " + ex.getMessage());
             }
         }
+        logToFile("=== doFilterInternal END ===");
 
         filterChain.doFilter(request, response);
     }
@@ -68,6 +94,7 @@ public class SupabaseAuthenticationFilter extends OncePerRequestFilter {
     private SimpleGrantedAuthority mapRoleToAuthority(String roleValue) {
         switch (roleValue) {
             case "2":
+            case "3": // Hỗ trợ tương thích ngược
                 return new SimpleGrantedAuthority("ROLE_ADMIN");
             case "1":
             case "0":

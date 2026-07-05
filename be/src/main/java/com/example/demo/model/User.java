@@ -28,7 +28,7 @@ public class User {
     private String avatarUrl;
 
     @Column(nullable = false)
-    private String role; // 0 hoặc 1
+    private String role; // 0 (Student), 1 (Teacher), 2 (Admin)
 
     @Column(name = "school")
     private String school;

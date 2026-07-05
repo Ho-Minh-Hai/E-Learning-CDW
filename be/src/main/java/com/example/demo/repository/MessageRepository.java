@@ -26,4 +26,7 @@ public interface MessageRepository extends JpaRepository<Message, UUID> {
     void markAsRead(@org.springframework.data.repository.query.Param("conversationId") UUID conversationId, 
                     @org.springframework.data.repository.query.Param("userId") UUID userId,
                     @org.springframework.data.repository.query.Param("now") java.time.LocalDateTime now);
+
+    void deleteBySenderId(UUID senderId);
+    void deleteByConversationId(UUID conversationId);
 }
