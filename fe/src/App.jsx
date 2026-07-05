@@ -3,6 +3,7 @@ import './App.css';
 import TopNavbar from './components/TopNavbar';
 import ClassPage from './components/Class';
 import Login from './auth/Login';
+import ResetPassword from './auth/ResetPassword';
 import Chat from './components/Chat';
 import EQuizz from './components/EQuizz';
 import Analytics from './components/Analytics';
@@ -46,6 +47,11 @@ function App() {
   const isFetchingRef = useRef(false);
   const [session, setSession] = useState(null);
   const [showLogin, setShowLogin] = useState(false);
+  const [showResetPassword, setShowResetPassword] = useState(() => {
+    const path = window.location.pathname;
+    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+    return path === '/reset-password' || hashParams.has('access_token') || hashParams.has('refresh_token') || hashParams.get('type') === 'recovery';
+  });
   const [userRole, setUserRole] = useState(null);
   const [userData, setUserData] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
@@ -232,7 +238,9 @@ function App() {
 
   return (
     <div className={`dashboard-container ${!session ? 'landing-mode-active' : ''}`}>
-      {session ? (
+      {showResetPassword ? (
+        <ResetPassword onBackToLogin={() => { setShowResetPassword(false); window.history.replaceState({}, document.title, '/'); }} />
+      ) : session ? (
         loadingUser ? (
           <div className="full-page-loading">
             <div className="loading-spinner-container"></div>
