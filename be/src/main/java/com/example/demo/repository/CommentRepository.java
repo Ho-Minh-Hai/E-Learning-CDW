@@ -15,4 +15,6 @@ public interface CommentRepository extends JpaRepository<Comment, UUID> {
     @org.springframework.data.jpa.repository.Query("SELECT c.post.id, COUNT(c) FROM Comment c WHERE c.post.id IN :postIds GROUP BY c.post.id")
     List<Object[]> countByPostIdIn(List<UUID> postIds);
     long countByPostId(UUID postId);
+    void deleteByPostId(UUID postId);
+    void deleteByUserId(UUID userId);
 }

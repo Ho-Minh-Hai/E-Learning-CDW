@@ -33,6 +33,11 @@ public class UserService {
             user.setEmail(normalizedEmail);
             user.setLastSignInAt(lastSignInAt);
             
+            // Tự động chuyển đổi role cũ "3" sang "2" (Quản trị viên)
+            if ("3".equals(user.getRole())) {
+                user.setRole("2");
+            }
+            
             // Chỉ cập nhật avatar từ Google nếu trong DB hiện đang trống hoặc chưa có avatar
             if (user.getAvatarUrl() == null || user.getAvatarUrl().isEmpty()) {
                 user.setAvatarUrl(avatarUrl);

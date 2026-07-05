@@ -175,6 +175,9 @@ const Class = ({ session, userRole, userData, onSwitchToMessages, classes, setCl
                 if (selectedClass) {
                     fetchPosts(selectedClass.id, false);
                 }
+            } else {
+                const errData = await response.json().catch(() => ({}));
+                alert(errData.message || 'Không thể gửi bình luận. Vui lòng thử lại!');
             }
         } catch (err) {
             console.error("Error submitting comment:", err);
@@ -277,6 +280,9 @@ const Class = ({ session, userRole, userData, onSwitchToMessages, classes, setCl
                 setPostDeadline('');
                 setTargetClassIds([]);
                 fetchPosts(selectedClass.id);
+            } else {
+                const errData = await response.json().catch(() => ({}));
+                alert(errData.message || 'Không thể tạo bài đăng. Vui lòng thử lại!');
             }
         } catch (err) {
             console.error("Error creating post:", err);
@@ -323,6 +329,10 @@ const Class = ({ session, userRole, userData, onSwitchToMessages, classes, setCl
                 setPostContent('');
                 setAttachments([]);
                 setPostDeadline('');
+                if (selectedClass) fetchPosts(selectedClass.id, false);
+            } else {
+                const errData = await response.json().catch(() => ({}));
+                alert(errData.message || 'Không thể cập nhật bài đăng. Vui lòng thử lại!');
             }
         } catch (err) {
             console.error("Error updating post:", err);
